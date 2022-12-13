@@ -1,6 +1,6 @@
 <template>
-    <div class="body">
-        <div style="display: flex;justify-content: space-between;">
+    <div>
+        <div class="headtool">
             <div>
                 <div style="width: 200px;display: inline-block;opacity: 0.5;">
                     <el-input v-model="query" />
@@ -14,40 +14,42 @@
                 <el-button color="#ffae19" @click="addHandler">写文章</el-button>
             </div>
         </div>
-
-        <div v-for="(article, index) in articleList" :key="article.id" :data-index="index">
-            <transition name="el-zoom-in-top">
-                <div class="article" v-show="article.show">
-                    <div class="content">
+        <el-row>
+            <div v-for="(article, index) in articleList" :key="article.id" :data-index="index" class="articleCard">
+                <transition name="el-zoom-in-top">
+                    <div v-show="article.show" style="height: 100%;width: 100%;">
                         <div>
-                            <span class="title" @click="articleDeail(article.id)">{{ article.title }} &#160;</span>
-                            <span> 时间:</span>
-                            <span style="color: #d63a3a;font-size: 90%;">{{ article.createTime }} &#160;</span>
-                            <span> 分类:</span>
-                            <span style="color: #d63a3a;font-size: 90%;"> {{ article.category }} &#160;</span>
-                            <span> 标签:</span>
-                            <span style="color: #d63a3a;font-size: 90%;" v-for=" (item, index) in article.tag"
-                                :key="index">
-                                {{ item }}
-                                <span style="color: #00c6a5;"> </span>
-                            </span>
-
+                            <el-image fit="cover" class="cover" :src="article.img" lazy />
                         </div>
-                        <div style="margin: 10px 0; text-indent: 2em;line-height: 20px;">{{ article.digest }}
+                        <div class="content">
+                            <div class="title" @click="articleDeail(article.id)">{{ article.title }} &#160;
+                            </div>
+                            <div class="tagStyle">
+                                时间: {{ article.createTime }}
+                            </div>
+                            <div class="tagStyle">
+                                分类: {{ article.category }}
+                            </div>
+                            <div class="tagStyle">
+                                标签:
+                                <span v-for=" (item, index) in article.tag" :key="index">
+                                    {{ item }}
+                                    <span style="color: #00c6a5;"> </span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="but">
+                            <div class="buttom" v-if="showFlag">
+                                <el-button type="primary" @click="editHandler(article.id)">编辑</el-button>
+                            </div>
+                            <div class="buttom" v-if="showFlag">
+                                <el-button type="danger" @click="deleteHandler(article.id)">删除</el-button>
+                            </div>
                         </div>
                     </div>
-                    <div class="but">
-                        <div class="buttom" v-if="showFlag">
-                            <el-button type="primary" @click="editHandler(article.id)">编辑</el-button>
-                        </div>
-                        <div class="buttom" v-if="showFlag">
-                            <el-button type="danger" @click="deleteHandler(article.id)">删除</el-button>
-                        </div>
-                    </div>
-                </div>
-            </transition>
-        </div>
-
+                </transition>
+            </div>
+        </el-row>
         <div class="endmsg">{{ endmsg }}</div>
         <ArticleEditorVue :categories="categories" :tags="tags" :editFlag=editFlag></ArticleEditorVue>
     </div>
@@ -73,7 +75,7 @@ export default {
             queryData: {
                 authorId: "",
                 startPage: 0,
-                pageSize: 7
+                pageSize: 12
             },
             categories: [],
             tags: []
@@ -175,7 +177,7 @@ export default {
                                     for (let i = this.queryData.startPage; i < this.queryData.startPage + res.data.length; i++) {
                                         this.articleList[i].show = true
                                     }
-                                    this.queryData.startPage = this.queryData.startPage + 7
+                                    this.queryData.startPage = this.queryData.startPage + 16
                                 }, 100);
                             }
                         })
@@ -210,12 +212,17 @@ export default {
         API.get('init/getArticles', this.queryData)
             .then(res => {
                 res.data.forEach(element => {
+                    element.img = this.baseUrl + element.img
                     element.tag = JSON.parse(element.tag).tags
                     element.digest = element.digest.replace(/#*.*#/g, '').replace(/[^a-z0-9\u4e00-\u9fa5]/, '').substring(0, 200) // 除去标题部分，截取200个字用来显示
                     element.show = true
                     this.articleList.push(element)
                 });
-                this.queryData.startPage = this.queryData.startPage + 7
+                this.queryData.startPage = this.queryData.startPage + 16
+                if (res.data.length < this.queryData.pageSize) {
+                    this.endmsg = "没有更多了..."
+                    window.removeEventListener('scroll', this.handleScroll)
+                }
             })
 
         let data = { "authorId": this.authorId }
@@ -242,9 +249,16 @@ export default {
 </script>
 
 <style lang='less' scoped>
-.body {
+.headtool {
+    display: flex;
+    justify-content: space-between;
     text-align: left;
-    margin: 60px 3% 30px 3%;
+    margin: 60px 3% 10px 3%;
+}
+
+.tagStyle {
+    color: #ffffff;
+    font-size: 90%
 }
 
 .endmsg {
@@ -257,30 +271,43 @@ export default {
     color: #858585;
 }
 
-.article {
-    display: flex;
-    justify-content: space-between;
-
-    border: 1px solid #278b63;
-    // box-shadow: 0 0px 5px rgba(221, 221, 221, 0.6);
+.articleCard {
+    display: inline-block;
+    position: relative;
     border-radius: 10px;
-    overflow: hidden;
-    margin: 15px 0;
-    background-color: rgba(255, 255, 255, 0.3);
-    padding: 0 10px;
-    height: 80px !important;
+    height: 200px;
+    max-width: 20%;
+    flex: 0 0 20%;
+    min-width: 200px !important;
+    margin: 20px 2.5% 20px 2.5%;
     transition: all 0.5s;
 
-    &:hover {
-        border: 1px solid #2dcf8e;
-        box-shadow: 0 0 10px #5ae7af;
-        transition: all 0.2s ease-in-out;
+    .cover {
+        opacity: 0.5;
+        z-index: -1;
+        top: 0;
+        left: 0;
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        transition: all 0.5s ease-in-out;
+        border-radius: 10px;
+    }
+
+    .content {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: rgba(137, 133, 133, 0.5);
+        border-radius: 10px;
+        user-select: none;
     }
 
     .title {
-        margin-top: 5px;
-        font-size: 20px;
-        color: #4b9797;
+        margin: 20px 10px;
+        text-align: center;
+        font-size: 25px;
+        color: #ffffff;
         display: inline-block;
         cursor: pointer;
         transition: all 0.2s;
@@ -289,44 +316,48 @@ export default {
             color: #04d6a2;
         }
     }
-}
-
-.content {
-    width: 85%;
-}
-
-.but {
-    margin: auto 0;
-    width: 160px;
-
-    .buttom {
-        opacity: 0.7;
-        display: inline-block;
-        margin: 0 0 0 10px;
-    }
-}
-
-@media(max-width: 650px) {
-    .article {
-        padding-left: 20px;
-        height: 170px !important;
-        justify-content: flex-end;
-
-        .title {
-            display: block;
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-    }
 
     .but {
-        margin: auto 0;
-        width: 80px;
+        margin: auto;
+        width: 160px;
+        opacity: 0;
+        transition: all 0.5s;
 
         .buttom {
-            display: block;
-            margin: 10px 0 0 20px;
+            opacity: 0.7;
+            display: inline-block;
+            margin: 5px;
         }
+    }
+
+    &:hover {
+        box-shadow: 0 0 10px #5ae7af;
+        transition: all 0.2s ease-in-out;
+
+        .but {
+            opacity: 1;
+        }
+    }
+}
+
+
+@media(max-width: 1010px) {
+    .articleCard {
+        max-width: 28%;
+        flex: 0 0 30%;
+        min-width: 200px !important;
+        margin: 20px 2.5% 20px 2.5%;
+        transition: all 0.5s;
+    }
+}
+
+@media(max-width: 720px) {
+    .articleCard {
+        max-width: 45%;
+        flex: 0 0 45%;
+        min-width: 200px !important;
+        margin: 20px 2.5% 20px 2.5%;
+        transition: all 0.5s;
     }
 }
 </style>

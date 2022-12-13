@@ -20,7 +20,7 @@
                         <span class="jutifenlei">{{ item.albumName }}</span>
                     </router-link>
                 </el-row>
-                <el-row class="fengexian">
+                <el-row style="user-select: none;">
                     <el-col :span="1"></el-col>
                     <el-col :span="10">
                         <hr width="100%" align="left" />
@@ -512,6 +512,7 @@ export default {
 }
 
 .header {
+
     transition: @transition;
 }
 
@@ -538,6 +539,7 @@ export default {
     margin: 1% 2.5% 1% 2.5%;
     // border: 1px solid skyblue;
     transition: @transition;
+    user-select: none;
 
     .cover {
         opacity: 0.7;
@@ -547,8 +549,6 @@ export default {
         position: absolute;
         height: 100%;
         width: 100%;
-        // object-fit: cover;
-        // vertical-align: middle;
         transition: all 0.5s ease-in-out;
         border-radius: 10px;
     }
@@ -575,6 +575,7 @@ export default {
     }
 
     .fenlei {
+        user-select: none;
         display: block;
         font-size: 20px;
         margin-top: 20%;
