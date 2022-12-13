@@ -261,7 +261,7 @@ export default {
     display: flex;
     justify-content: space-between;
 
-    border: 1px solid rgba(220, 220, 220, 0.6);
+    border: 1px solid #278b63;
     // box-shadow: 0 0px 5px rgba(221, 221, 221, 0.6);
     border-radius: 10px;
     overflow: hidden;
@@ -272,8 +272,8 @@ export default {
     transition: all 0.5s;
 
     &:hover {
-        border: 1px solid #5dfaff;
-        box-shadow: 0 0 10px #5dfaff;
+        border: 1px solid #2dcf8e;
+        box-shadow: 0 0 10px #5ae7af;
         transition: all 0.2s ease-in-out;
     }
 

@@ -27,7 +27,4 @@ public class AlbumController {
 		String authorId = Objects.requireNonNull(JwtUtil.getUserFromToken(token)).getUsername();
 		return albumService.update(authorId, albums);
 	}
-
-
-
 }
