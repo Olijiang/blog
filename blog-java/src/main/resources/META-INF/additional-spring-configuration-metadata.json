@@ -1,0 +1,23 @@
+{
+  "properties": [
+    {
+      "name": "blogserver.serverIP",
+      "type": "java.lang.String",
+      "description": "Description for blogserver.serverIP."
+    },
+    {
+      "name": "blogserver.dataPath",
+      "type": "java.lang.String",
+      "description": "Description for blogserver.dataPath."
+    },
+    {
+      "name": "blogserver.imgPath",
+      "type": "java.lang.String",
+      "description": "Description for blogserver.imgPath."
+    },
+    {
+      "name": "blogserver.articlePath",
+      "type": "java.lang.String",
+      "description": "Description for blogserver.articlePath."
+    }
+  ] }

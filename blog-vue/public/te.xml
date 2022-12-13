@@ -1,0 +1,26 @@
+<MSG>
+    <META>
+        <SNDR>PVAM</SNDR>
+        <RCVR/>
+        <SEQN>803</SEQN>
+        <DDTM>20221107140002</DDTM>
+        <TYPE>PVAM</TYPE>
+        <STYP>ACRE</STYP>
+        <SORC/>
+        <MGID>1007d5564398480e908b5ee7e2ca3db8</MGID>
+        <RMID/>
+        <APOT>ZUUU</APOT>
+    </META>
+    <DATAS>
+        <start>2022-11-07T13:55:02</start>
+        <end>2022-11-07T14:00:02</end>
+        <PROVINCIAL_BUS>0</PROVINCIAL_BUS>
+        <CITY_BUS>0</CITY_BUS>
+        <RAILWAY>0</RAILWAY>
+        <PARKING_BUILDING_PASSENGER>0</PARKING_BUILDING_PASSENGER>
+        <METRO>0</METRO>
+        <TAXI_QUEUE_1>0</TAXI_QUEUE_1>
+        <TAXI_QUEUE_2>0</TAXI_QUEUE_2>
+        <TAXI_QUEUE_3>0</TAXI_QUEUE_3>
+    </DATAS>
+</MSG>

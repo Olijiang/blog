@@ -1,0 +1,133 @@
+* {
+  z-index: 0;
+}
+
+html,
+body {
+  margin: 0;
+  /*清除默认样式*/
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: cursive, Consolas, serif, sans-serif;
+  /* scroll-behavior: smooth; */
+}
+
+::selection {
+  background: rgb(240, 247, 239);
+  color: rgb(255, 48, 158);
+}
+
+a {
+  text-decoration: none;
+  /* 去除默认的下划线 */
+  outline: none;
+  /* 去除旧版浏览器的点击后的外虚线框 */
+  color: rgb(47, 45, 45);
+  /* 去除默认的颜色和点击后变化的颜色 */
+}
+
+
+#app {
+  position: relative;
+  text-align: center;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: cursive, Consolas, serif, sans-serif !important;
+}
+
+.el-input__inner::placeholder {
+  font-family: cursive, Consolas, serif, sans-serif !important;
+}
+
+.title input {
+  font-family: cursive, Consolas, serif, sans-serif !important;
+}
+
+.el-form-item {
+  align-items: center
+}
+
+.input-body div>textarea {
+  height: 100% !important;
+  font-family: cursive, Consolas, serif, sans-serif !important;
+}
+
+/* 滑动条 */
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: inset 0 0 10px #ffffff;
+  /*滑轨*/
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  /*高宽分别对应横竖·滚动条的尺寸*/
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  background: rgba(17, 179, 170, 0.4);
+}
+
+.hljs::-webkit-scrollbar {
+  width: 5px;
+  /*高宽分别对应横竖·滚动条的尺寸*/
+  height: 5px;
+}
+
+.hljs::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: inset 0 0 10px #ffffff;
+  /*滑轨*/
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.hljs::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  background: rgba(17, 179, 170, 0.4);
+}
+
+/* 过度动画 */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-in-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.3s ease-in-out;
+  display: none
+}
+
+.slide-fade-enter-from {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  transform: translateY(10px);
+  opacity: 0;
+}
+
+.imgPreviewBox {
+  margin: 0;
+  z-index: 10;
+  width: 100%;
+  max-height: 100%;
+
+}
+
+.imgPreviewBox img {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.space {
+  max-width: 3%;
+  flex: 0 0 3%;
+}

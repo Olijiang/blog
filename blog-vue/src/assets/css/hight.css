@@ -1,0 +1,82 @@
+pre code.hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 1em
+}
+
+.hljs {
+    background: #f6f8fa;
+    color: #235b94
+}
+
+.hljs-comment,
+.hljs-quote {
+    color: #2ea02e;
+    font-style: italic
+}
+
+.hljs-addition,
+.hljs-keyword,
+.hljs-literal,
+.hljs-selector-tag,
+.hljs-type {
+    color: rgb(228, 70, 228)
+}
+
+.hljs-number,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+    color: #f99157
+}
+
+.hljs-doctag,
+.hljs-regexp,
+.hljs-string {
+    color: #3ba395
+}
+
+.hljs-built_in,
+.hljs-name,
+.hljs-section,
+.hljs-title {
+    color: #086e80
+}
+
+.hljs-class .hljs-title,
+.hljs-selector-id,
+.hljs-template-variable,
+.hljs-title.class_,
+.hljs-variable {
+    color: #fc6
+}
+
+.hljs-name,
+.hljs-section,
+.hljs-strong {
+    font-weight: 700
+}
+
+.hljs-bullet,
+.hljs-link,
+.hljs-meta,
+.hljs-subst,
+.hljs-symbol {
+    color: #f99157
+}
+
+.hljs-deletion {
+    color: #dc322f
+}
+
+.hljs-formula {
+    background: #eee8d5
+}
+
+.hljs-attr,
+.hljs-attribute {
+    color: #6596c0
+}
+
+.hljs-emphasis {
+    font-style: italic
+}
