@@ -1,5 +1,5 @@
-/.metadata/
-/.recommenders/
-/.iead
-/blogData/
-/target/
+.metadata/*
+.recommenders/*
+.idea/*
+blogData/*
+target/*
