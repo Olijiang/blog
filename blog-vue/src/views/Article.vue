@@ -25,7 +25,7 @@
                             <div class="title" @click="articleDeail(article.id)">{{ article.title }} &#160;
                             </div>
                             <div class="tagStyle">
-                                时间: {{ article.createTime }}
+                                发表时间: {{ article.createTime }}
                             </div>
                             <div class="tagStyle">
                                 分类: {{ article.category }}
@@ -335,6 +335,7 @@ export default {
         transition: all 0.2s ease-in-out;
 
         .but {
+            transition-delay: 0.5s;
             opacity: 1;
         }
     }

@@ -4,7 +4,8 @@
             <div class="illustration">
                 <el-image fit="cover" class="img" :src=author.coverImg alt="" />
                 <div class="authorInfo">
-                    <h1 style="margin: 20px;color:rgb(9, 214, 180);font-size: 50px;"> {{ author.blogName }} </h1>
+                    <h1 style="margin: 200px 0 0 20px;color:white;font-size: 50px;"> {{ author.blogName }}
+                    </h1>
                     <p style="margin: 10px;">{{ author.blogInfo }}</p>
                 </div>
             </div>
@@ -152,18 +153,19 @@ export default {
     transition: all 0.5s;
 
     .img {
+        display: block;
         height: 100%;
         width: 100%;
-        vertical-align: middle;
+        position: absolute;
         transition: all 0.5s ease-in-out;
         border-radius: 0px 0px 10px 10px;
     }
 
     .authorInfo {
+        background-color: rgba(137, 133, 133, 0.5);
         position: absolute;
         width: 100%;
-        top: 200px;
-        margin: 0 auto;
+        height: 100%;
         transition: all 0.3s ease-in-out;
         user-select: none;
     }

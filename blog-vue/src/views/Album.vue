@@ -583,7 +583,7 @@ export default {
     }
 
     .jutifenlei {
-        color: #17ed97;
+        color: white;
         display: block;
         font-size: 30px;
         transition: @transition;

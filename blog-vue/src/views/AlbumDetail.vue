@@ -4,9 +4,9 @@
             <div class="illustration">
                 <el-image fit="cover" class="img" :src=coverImg alt="" lazy />
                 <div class="ArticleInfo">
-                    <h1 style="margin: 20px;color:rgb(9, 214, 180);font-size: 100px;">{{ albumName }} </h1>
+                    <h1 style="margin: 200px 0 20px 0;color:white;font-size: 100px;">{{ albumName }} </h1>
                     <router-link :to="'/Album/' + authorId">
-                        <span style="color:#06a0e9;font-size: 30px;">
+                        <span style="font-size: 30px;">
                             相册
                         </span>
                     </router-link>
@@ -292,22 +292,20 @@ export default {
     transition: all 0.5s;
 
     .img {
+        display: block;
         height: 100%;
         width: 100%;
-        object-fit: cover;
-        vertical-align: middle;
+        position: absolute;
         transition: all 0.5s ease-in-out;
         border-radius: 0px 0px 10px 10px;
     }
 
     .ArticleInfo {
         user-select: none;
+        background-color: rgba(137, 133, 133, 0.5);
         position: absolute;
         width: 100%;
-        // height: 100%;
-        // color: white;
-        top: 250px;
-        margin: 0 auto;
+        height: 100%;
         transition: all 0.3s ease-in-out;
     }
 }

@@ -1,10 +1,39 @@
-blogData/imgs/2022112116394254_2020.jpeg
-blogData/imgs/2022112015271755_2020.jpeg
-blogData/imgs/2022112015231151_2020.jpeg
-blogData/imgs/2022112116394256_2020.jpeg
+<template>
+    <div>
+        
 
+    </div>
+</template>
 
-blogData/imgs/2022112116290565_2020.jpeg
-blogData/imgs/2022112116405637_2020.jpeg
-blogData/imgs/2022112015231151_2020.jpeg
-blogData/imgs/2022112116280442_2020.jpeg
+<script>
+
+export default {
+    name: name,
+    components: {
+
+    },
+    props: {},
+    data() {
+        return {
+
+        }
+    },
+    methods: {
+
+    },
+    computed: {
+
+    },
+    watch: {
+
+    },
+    mounted() {
+
+    },
+}
+
+</script>
+
+<style lang='less' scoped>
+
+</style>
