@@ -1,11 +1,11 @@
 package blog.controller;
 
 import blog.config.ComResult;
+import blog.config.LocalCatch;
 import blog.entity.Album;
-import blog.service.AlbumServiceImpl;
-import blog.service.ArticleServiceImpl;
-import blog.service.ImageServiceImpl;
-import blog.service.UserServiceImpl;
+import blog.entity.Category;
+import blog.entity.User;
+import blog.service.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,16 +34,31 @@ public class InitController {
 	private ImageServiceImpl imageService;
 	@Resource
 	private AlbumServiceImpl albumService;
+	@Resource
+	private CategoryServiceImpl categoryService;
+
+	@ApiOperation("访问数量")
+	@GetMapping("/visit")
+	public ComResult visit(String authorId){
+		User user = userService.getUserById(authorId);
+		user.setVisitNum(user.getVisitNum()+1);
+		userService.updateById(user);
+		LocalCatch.put("user"+authorId, user);
+		return ComResult.success();
+	}
 
 	@ApiOperation("初始化时获取作者信息")
 	@GetMapping("/getAuthor")
 	public ComResult getAuthor(String authorId){
-		return userService.getUser(authorId);
+		User user = userService.getUserById(authorId);
+		if (user==null) return ComResult.error("用户不存在");
+		return ComResult.success("获取用户信息成功",user);
 	}
 
 	@GetMapping("/getCategories")
 	public ComResult getCategories(String authorId){
-		return articleService.getCategoryById(authorId);
+		List<Category> categories= categoryService.getCategories(authorId);
+		return ComResult.success("获取分类成功",categories);
 	}
 
 	@GetMapping("/getTags")

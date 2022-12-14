@@ -3,9 +3,11 @@ package blog.service;
 import blog.config.ComResult;
 import blog.config.LocalCatch;
 import blog.config.PathConfig;
-import blog.entity.*;
+import blog.entity.Article;
+import blog.entity.ArticleDTO;
+import blog.entity.Tag;
+import blog.entity.User;
 import blog.mapper.ArticleMapper;
-import blog.mapper.CategoryMapper;
 import blog.mapper.TagMapper;
 import blog.utils.myUtil;
 import com.alibaba.fastjson.JSON;
@@ -38,11 +40,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 
 
 	@Resource
-	private CategoryMapper categoryMapper;
+	private CategoryServiceImpl categoryService;
 	@Resource
 	private ArticleMapper articleMapper;
 	@Resource
 	private TagMapper tagMapper;
+	@Resource
+	private UserServiceImpl userService;
 
 	public ComResult getArticleContent(String filePath){
 		String article= getContent(filePath);
@@ -65,9 +69,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		Article article = getArticle(articleId);
 		return ComResult.success("获取文章成功",article);
 	}
+
 	public ComResult deleteArticle(Integer articleId, String authorId) {
 		Article article = getArticle(articleId);
-		if (!article.getAuthorId().equals(authorId)) return ComResult.error("非法操作");
+		if (article == null || !article.getAuthorId().equals(authorId)) return ComResult.error("非法操作");
 		// 删除文章
 		myUtil.deleteFile(article.getContent());
 		// 删除图片
@@ -77,11 +82,18 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		// 清除缓存
 		LocalCatch.removeByPre("articleList"+authorId);
 		LocalCatch.remove("article"+articleId);
+		// 更新作者文章信息
+		User user = userService.getUserById(authorId);
+		user.setArticleNum(user.getArticleNum()-1);
+		LocalCatch.put("user"+authorId,user);
+		userService.updateById(user);
+		categoryService.articleMinusOne(authorId,article.getCategory());
 		log.info("删除文章成功 id"+ article.getAuthorId() + article.getTitle());
 		return ComResult.success();
 	}
 
 	public ComResult addArticle(ArticleDTO articleDTO, String authorId) {
+		User user = userService.getUserById(authorId);
 		Article article = new Article();
 		// 图片
 //		System.out.println(articleDTO);
@@ -94,12 +106,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		if (articlePath==null) return ComResult.error("文章发表失败, 原因：文章内容");
 
 		article.setContent(articlePath);
-		// title
+		// 设置标题
 		article.setTitle(articleDTO.getTitle());
-		// category
+		// 设置分类
 		article.setCategory(articleDTO.getCategory());
-		// 刷新作者的 category 库
-		updateCategories(authorId, articleDTO.getCategory());
+		// 刷新作者的 category 信息
+		user.setCategoryNum(categoryService.addCategory(authorId, articleDTO.getCategory()));
+		categoryService.articleAddOne(authorId,articleDTO.getCategory());
 		// 刷新作者的 tag 库
 		updateTags(authorId, articleDTO.getTag());
 		// 设置 本文章的 tag
@@ -125,15 +138,19 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		articleMapper.insert(article);
 		LocalCatch.removeByPre("articleList"+authorId);
 		log.info("添加文章成功 id："+ article.getAuthorId()+" title:" + article.getTitle());
+		// 更新作者文章信息
+		user.setArticleNum(user.getArticleNum()+1);
+		LocalCatch.put("user"+authorId,user);
+		userService.updateById(user);
 		return ComResult.success("添加成功");
 	}
 
 	public ComResult updateArticle(ArticleDTO articleDTO, String authorId) {
+		User user = userService.getUserById(authorId);
 		Article article = getArticle(articleDTO.getId());
-		// 验证作者
-
 		if (article==null) return ComResult.error("文章不存在");
-		if (!getArticle(articleDTO.getId()).getAuthorId().equals(authorId))
+		// 验证作者和文章是否对应
+		if (!Objects.requireNonNull(getArticle(articleDTO.getId())).getAuthorId().equals(authorId))
 			return ComResult.error("非法操作");
 		// 保存图片
 		if (!articleDTO.getImg().equals("")){
@@ -159,9 +176,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		article.setTitle(articleDTO.getTitle());
 		// category
 		article.setCategory(articleDTO.getCategory());
-		// 刷新作者的 category 库
-		updateCategories(authorId, articleDTO.getCategory());
-
+		// 刷新作者的 category 信息
+		user.setCategoryNum(categoryService.addCategory(authorId, articleDTO.getCategory()));
+		categoryService.articleAddOne(authorId,articleDTO.getCategory());
+		categoryService.articleMinusOne(authorId,article.getCategory());
 		// 刷新作者的 tag 库
 		updateTags(authorId, articleDTO.getTag());
 		// 设置 本文章的 tag
@@ -185,13 +203,11 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		articleMapper.updateById(article);
 		LocalCatch.put("article"+article.getId(),article);
 		LocalCatch.removeByPre("articleList"+authorId);
+		// 更新作者文章信息
+		userService.updateById(user);
+		LocalCatch.put("user"+authorId,user);
 		log.info("修改文章成功 id："+ article.getAuthorId()+" title:" + article.getTitle());
 		return ComResult.success("修改成功");
-	}
-
-	public ComResult getCategoryById(String authorId){
-		String[] categories= getCategories(authorId);
-		return ComResult.success("获取分类成功",categories);
 	}
 
 	public ComResult getTagsById(String authorId){
@@ -247,32 +263,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		return articleContent;
 	}
 
-	private String[] getCategories(String authorId) {
-		String[] categories;
-		String key = "categories"+authorId;
-		if ((categories = (String[]) LocalCatch.get(key))==null) {
-			Category category = categoryMapper.selectById(authorId);
-			if (category==null) return new String[] {};
-			JSONArray jsonArray = (JSONArray) JSON.parseObject(category.getCategories()).get("categories");
-			categories = jsonToArray(jsonArray);
-			LocalCatch.put(key, categories);
-			return categories;
-		}
-		return categories;
-	}
-
-	private void updateCategories(String authorId, String newCategory) {
-		String[] rawCategories = getCategories(authorId);
-		String[] newCategories = myUtil.union(rawCategories, new String[]{newCategory});
-		LocalCatch.put("categories"+authorId,newCategories);
-		Category category = new Category();
-		category.setAuthorId(authorId);
-		JSONObject json = new JSONObject();
-		json.put("categories", newCategories);
-		category.setCategories(json.toJSONString());
-		categoryMapper.updateById(category);
-	}
-
 
 	// 根据author 获取 tag 数据
 	private String[] getTags(String authorId){
@@ -308,6 +298,4 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		});
 		return list.toArray(new String[0]);
 	}
-
-
 }

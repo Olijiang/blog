@@ -4,7 +4,7 @@
             <div class="illustration">
                 <el-image fit="cover" class="img" :src=author.coverImg alt="" />
                 <div class="authorInfo">
-                    <h1 style="margin: 200px 0 0 20px;color:white;font-size: 50px;"> {{ author.blogName }}
+                    <h1 style="margin: 200px 0 0 20px;color:burlywood;font-size: 50px;"> {{ author.blogName }}
                     </h1>
                     <p style="margin: 10px;">{{ author.blogInfo }}</p>
                 </div>
@@ -73,7 +73,8 @@ export default {
                         .then(res => {
                             if (res.code == 200) {
                                 // console.log(res.data);
-                                res.data.forEach(element => {
+                                res.data.forEach((element, index) => {
+                                    element.index = this.queryData.startPage + index
                                     this.articleList.push(element)
                                 });
                                 if (res.data.length < this.queryData.pageSize) {
@@ -119,7 +120,8 @@ export default {
             .then(res => {
                 if (res.code == 200) {
                     // console.log(res.data);
-                    res.data.forEach(element => {
+                    res.data.forEach((element, index) => {
+                        element.index = this.queryData.startPage + index
                         this.articleList.push(element)
                     });
                     if (res.data.length < this.queryData.pageSize) {
@@ -134,6 +136,9 @@ export default {
         setTimeout(() => {
             this.show = true
         }, 200);
+
+        // 更新访问信息
+        API.get('init/visit', { authorId: this.authorId })
     },
     unmounted() {
         window.removeEventListener('scroll', this.handleScroll)
@@ -163,6 +168,7 @@ export default {
 
     .authorInfo {
         background-color: rgba(137, 133, 133, 0.5);
+        border-radius: 0px 0px 10px 10px;
         position: absolute;
         width: 100%;
         height: 100%;

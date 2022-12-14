@@ -27,6 +27,7 @@ public class LoginController {
 	public ComResult login(@RequestBody LoginInfo loginInfo){
 		String code = (String) LocalCatch.get(loginInfo.getTimeStamp());
 		if (loginInfo.getCode().equals(code)){
+			LocalCatch.remove(loginInfo.getTimeStamp());
 			return loginService.login(loginInfo);
 		}else{
 			return ComResult.error("验证码错误");

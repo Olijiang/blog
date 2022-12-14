@@ -26,7 +26,7 @@
             </template>
 
             <template v-else>
-                <div class="nav_item" @click="loginDialog = true">
+                <div class="nav_item" @click="loginHander">
                     <span>登录</span>
                     <div class="item_line"></div>
                 </div>
@@ -41,7 +41,7 @@
         </template>
         <div style="width: 300px;">
             <el-form ref="loginRef" :model="loginForm" :rules="rules" label-width="80px" class="demo-ruleForm"
-                @keyup.enter="loginHandler">
+                @keyup.enter="loginAction">
                 <el-form-item label="用户名" prop="username">
                     <el-input v-model="loginForm.username" type="text" autocomplete="off" placeholder="请输入账户" />
                 </el-form-item>
@@ -58,7 +58,7 @@
 
                 </el-form-item>
                 <el-form-item style="margin-top:30px">
-                    <el-button type="primary" @click="loginHandler">登录</el-button>
+                    <el-button type="primary" @click="loginAction">登录</el-button>
                     <el-button @click="resetForm">清空</el-button>
                     <div class="regtxt" @click="toRegister">注册账号</div>
                 </el-form-item>
@@ -215,7 +215,7 @@ export default {
                     }
                 })
         },
-        loginHandler() {
+        loginAction() {
             console.log(this.loginForm);
             this.$refs['loginRef'].validate((valid) => {
                 if (valid) {
@@ -246,6 +246,10 @@ export default {
         },
 
         // navBar
+        loginHander() {
+            this.loginDialog = true
+            this.resetForm()
+        },
         logoutHandler() {
             ElMessageBox.confirm('是否确认退出?', '提示框',
                 {

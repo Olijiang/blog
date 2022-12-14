@@ -29,6 +29,7 @@ public class LocalCatch {
 
 	public static void remove(String key){
 		map.remove(key);
+
 	}
 
 	public static void removeByPre(String pre) {

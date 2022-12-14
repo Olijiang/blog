@@ -2,6 +2,7 @@
     <el-dialog style="border-radius: 10px; z-index: 2;margin-bottom: 100px;" v-model="editDialog" top="60px" width="90%"
         :close-on-click-modal=false :close-on-press-escape=false @close="closeHandler" :append-to-body="true">
         <el-form id="myform" :model="article" ref="articleRef" :rules="rules">
+            <div id="editorTop"></div>
             <div class="header">
                 <el-row>
                     <el-col :span="12">
@@ -17,8 +18,8 @@
                                 <el-col :span="7">
                                     <el-form-item prop="category">
                                         <el-select v-model="article.category" placeholder="选择分类">
-                                            <el-option v-for="(c, index) in categories" :key="index" :label="c"
-                                                :value="c">
+                                            <el-option v-for="(cat, index) in categories" :key="index"
+                                                :label="cat.category" :value="cat.category">
                                             </el-option>
                                             <div style="margin: 0 15px;">
                                                 <el-input v-model="newCategory" placeholder="新建分类" type="text"
@@ -66,9 +67,9 @@
                         </transition>
                     </el-col>
                     <el-col :span="4">
-                        <div>
+                        <!-- <div>
                             <el-button type="primary" @click="saveToScript">保存到草稿</el-button>
-                        </div>
+                        </div> -->
                         <div style="margin: 10px 0;">
                             <el-button type="primary" @click="saveAndIssue">发表</el-button>
                         </div>
@@ -84,21 +85,34 @@
                     <el-input style="font-size: 16px;height: 100%;" type="textarea" v-model="article.content"
                         resize="none" placeholder="文章内容"></el-input>
                 </div>
-                <div class="resize" @mousedown="drapContent" @dblclick="resetSize"></div>
+                <div class="middle-part">
+                    <div class="to-top" @click="gotoEditorTop">
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" data-v-029747aa="">
+                            <path fill="currentColor" d="M512 320 192 704h639.936z"></path>
+                        </svg>
+                        <span style="translate: 3px 0;display: block;">前往顶部</span>
+                    </div>
+                    <div class="resize-but" @mousedown="drapContent" @dblclick="resetSize"></div>
+                    <div class="to-bottom" @click="gotoEditorBottom">
+                        <span style="translate: 3px 0;display: block;">前往低部</span>
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" data-v-029747aa="">
+                            <path fill="currentColor" d="m192 384 320 384 320-384z"></path>
+                        </svg>
+                    </div>
+                </div>
                 <div class="markdown-body" v-html="htmlContent"></div>
             </div>
         </el-form>
-        <el-button type="primary" @click="saveToScript">保存到草稿</el-button>
+        <!-- <el-button type="primary" @click="saveToScript">保存到草稿</el-button> -->
         <el-button type="primary" @click="saveAndIssue">发表</el-button>
         <el-button type="danger" @click="closeAndSaveToScript">关闭</el-button>
-
+        <div id="editorBottom"></div>
     </el-dialog>
 </template>
 
 <script>
 
 import markdownToHtml from '@/utils/markdown'
-import { Bottom } from '@element-plus/icons-vue';
 import API from '../utils/API';
 export default {
     components: {
@@ -106,7 +120,7 @@ export default {
     props: {
         tags: Array,
         categories: Array,
-        editFlag: Bottom,
+        editFlag: Boolean,
     },
     data() {
         return {
@@ -123,6 +137,14 @@ export default {
     methods: {
         test() {
 
+        },
+        gotoEditorTop() {
+            let anchor = document.getElementById("editorTop");
+            anchor.scrollIntoView({ behavior: "smooth", block: "center" }); //这里的counter1是将要返回地方的id
+        },
+        gotoEditorBottom() {
+            let anchor = document.getElementById("editorBottom");
+            anchor.scrollIntoView({ behavior: "smooth" }); //这里的counter1是将要返回地方的id
         },
         dealImage(rawbase64) {
             var newImage = new Image();
@@ -185,13 +207,17 @@ export default {
             }
         },
         addCategory() {
-            console.log("add new category", this.newCategory);
-            this.categories.push(this.newCategory)
+            let data = {
+                id: -1,
+                authorId: this.authorId,
+                category: this.newCategory,
+                articleNum: 0,
+            }
+            this.categories.push(data)
             this.article.category = this.newCategory
             this.newCategory = ""
         },
         addTag() {
-            console.log("add new tag", this.newTag);
             this.tags.push(this.newTag)
             this.article.tag.push(this.newTag)
             this.newTag = ""
@@ -353,23 +379,52 @@ export default {
     justify-content: space-between;
     display: flex;
     width: 100%;
-    min-height: 500px;
+    min-height: 440px;
     margin: 0 0 20px 0;
 
     .input-body {
         width: 50%;
 
+        ::-webkit-scrollbar {
+            width: 4px !important;
+            /*高宽分别对应横竖·滚动条的尺寸*/
+            height: 4px !important;
+        }
+
+        ::-webkit-scrollbar-track {
+            -webkit-box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.497);
+        }
     }
 
-    .resize {
+    .middle-part {
+        width: 10px;
+        height: 100%;
         position: sticky;
-        top: 25vh;
-        cursor: col-resize;
-        width: 8px;
-        height: 100px;
-        margin: calc(25% - 100px) 5px;
-        background: linear-gradient(45deg, rgba(255, 13, 0, 0.6), rgba(51, 255, 0, 0.6), rgba(0, 251, 255, 0.6), rgba(0, 60, 255, 0.6), rgba(230, 0, 255, 0.6));
-        border-radius: 5px;
+        top: 100px;
+
+        .to-top {
+            cursor: pointer;
+            translate: -6px 0;
+            width: 20px;
+            margin: 0 0 50px 0;
+            user-select: none;
+        }
+
+        .resize-but {
+            cursor: col-resize;
+            height: 100px;
+            width: 8px;
+            border-radius: 5px;
+            background: linear-gradient(45deg, rgba(255, 13, 0, 0.6), rgba(51, 255, 0, 0.6), rgba(0, 251, 255, 0.6), rgba(0, 60, 255, 0.6), rgba(230, 0, 255, 0.6));
+        }
+
+        .to-bottom {
+            cursor: pointer;
+            margin: 50px 0 0 0;
+            translate: -6px 0;
+            width: 20px;
+            user-select: none;
+        }
     }
 
     .markdown-body {

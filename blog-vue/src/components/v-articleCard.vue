@@ -15,10 +15,11 @@
             <el-col class="articleCol">
                 <transition name="el-zoom-in-top">
                     <div class="article_card" v-show="ok">
-                        <div :class="{ illustration_l: (article.id % 2 == 0), illustration_r: (article.id % 2 != 0) }">
+                        <div
+                            :class="{ illustration_l: (article.index % 2 == 0), illustration_r: (article.index % 2 != 0) }">
                             <el-image class="img" fir="cover" :src=article.img alt="img" @click="articleDeail" />
                         </div>
-                        <div :class="{ content_r: (article.id % 2 == 0), content_l: (article.id % 2 != 0) }">
+                        <div :class="{ content_r: (article.index % 2 == 0), content_l: (article.index % 2 != 0) }">
                             <h3 @click="articleDeail">{{ article.title }}</h3>
                             <span style="font-size: 80%;user-select: none;">
                                 分类: <span style="color: #d63a3a;">{{ article.category }}</span> |
@@ -95,7 +96,7 @@ export default {
 
 .time_node {
     position: absolute;
-    background-color: #3f00ff;
+    background-color: #278b63;
     position: absolute;
     top: 100px;
     left: -6px;
@@ -107,7 +108,7 @@ export default {
 .time_line {
     position: relative;
     display: inline-block;
-    border-left: 1px solid #3f00ff;
+    border-left: 1px solid #278b63;
     height: 100%;
     text-align: center;
     width: 50%;
@@ -117,7 +118,7 @@ export default {
     margin-top: 100px;
     margin-left: 5%;
     font-size: 80%;
-    color: #3f00ff;
+    color: #278b63;
 }
 
 .article_card {

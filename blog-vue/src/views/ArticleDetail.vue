@@ -4,7 +4,7 @@
             <div class="illustration">
                 <el-image fit="cover" class="img" :src=article.img alt="" />
                 <div class="ArticleInfo">
-                    <h1 style="margin: 20px;color:rgb(9, 214, 180);font-size: 50px;"> {{ article.title }} </h1>
+                    <h1 style="margin: 200px 0 20px 0;color:white;font-size: 50px;"> {{ article.title }} </h1>
                     <p style="margin: 10px;">
                         <el-tag type="success" style="font-size: 15px;">
                             创作时间
@@ -234,18 +234,20 @@ export default {
     transition: all 0.5s;
 
     .img {
+        display: block;
         height: 100%;
         width: 100%;
-        vertical-align: middle;
+        position: absolute;
         transition: all 0.5s ease-in-out;
         border-radius: 0px 0px 10px 10px;
     }
 
     .ArticleInfo {
+        background-color: rgba(137, 133, 133, 0.5);
+        border-radius: 0px 0px 10px 10px;
         position: absolute;
         width: 100%;
-        top: 300px;
-        margin: 0 auto;
+        height: 100%;
         transition: all 0.3s ease-in-out;
         user-select: none;
     }

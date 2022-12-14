@@ -2,6 +2,7 @@ package blog.controller;
 
 
 import blog.config.ComResult;
+import blog.entity.Category;
 import blog.entity.User;
 import blog.service.UserServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,8 +40,7 @@ public class UserController {
 
 		User user = objectMapper.convertValue(map.get("author"),User.class);
 		String[] tags = objectMapper.convertValue(map.get("tags"),String[].class);
-		String[] categories = objectMapper.convertValue(map.get("categories"),String[].class);
-
+		Category[] categories = objectMapper.convertValue(map.get("categories"),Category[].class);
 		return userService.updateAuthor(user, tags, categories);
 	}
 

@@ -70,14 +70,14 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  border-radius: 5px;
+  border-radius: 4px;
   background: rgba(17, 179, 170, 0.4);
 }
 
 .hljs::-webkit-scrollbar {
-  width: 5px;
+  width: 4px;
   /*高宽分别对应横竖·滚动条的尺寸*/
-  height: 5px;
+  height: 4px;
 }
 
 .hljs::-webkit-scrollbar-track {

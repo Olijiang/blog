@@ -77,7 +77,7 @@
                         <el-checkbox-group v-model="selectedCa" @change="selectChangeCa">
                             <el-checkbox v-for="ca in categories" :key="ca" :label="ca"
                                 style="display: block;font-size: 20px !important;text-align: left;margin-left: 20px;">
-                                {{ ca }}</el-checkbox>
+                                {{ ca.category }} ({{ ca.articleNum }})</el-checkbox>
                         </el-checkbox-group>
                         <div style="margin: 0 20px 5px 20px;">
                             <el-input v-model="newCategory" placeholder="新建分类" type="text" @keyup.enter="addCategory">
@@ -137,6 +137,7 @@ export default {
             selectedTag: [],
             selectAllTag: false,
             isIndeterminateTag: false,
+            cachedCat: []
         }
     },
     methods: {
@@ -151,7 +152,21 @@ export default {
             this.isIndeterminateCa = value.length > 0 && value.length < this.categories.length
         },
         addCategory() {
-            this.categories.push(this.newCategory)
+            if (this.newCategory == "") return
+            for (let i = 0; i < this.categories.length; i++) {
+                if (this.categories[i].category == this.newCategory) {
+                    // 分类已存在
+                    this.newCategory = ""
+                    return
+                }
+            }
+            let data = {
+                id: -1,
+                authorId: null,
+                category: this.newCategory,
+                articleNum: 0,
+            }
+            this.categories.push(data)
             this.newCategory = ""
             this.changeFlag = true
         },
@@ -162,6 +177,7 @@ export default {
                     data.push(e)
                 }
             })
+            this.cachedCat = this.categories
             this.categories = data
             this.changeFlag = true
             this.catChange = false
@@ -178,6 +194,14 @@ export default {
             this.isIndeterminateTag = value.length > 0 && value.length < this.tags.length
         },
         addTag() {
+            if (this.newTag == "") return
+            for (let i = 0; i < this.tags.length; i++) {
+                if (this.tags[i] == this.newTag) {
+                    // 标签已存在
+                    this.newTag = ""
+                    return
+                }
+            }
             this.tags.push(this.newTag)
             this.newTag = ""
             this.changeFlag = true
@@ -259,6 +283,10 @@ export default {
                         })
                         this.changeFlag = false
                     }
+                    if (res.code == 499) {
+                        // 分类下有文章不允许删除
+                        this.categories = this.cachedCat
+                    }
                 })
         },
         dealImage(rawbase64, size) {
@@ -313,7 +341,6 @@ export default {
     mounted() {
         this.author = JSON.parse(JSON.stringify(this.$store.state.author));
         let data = { "authorId": this.author.username }
-        console.log(data);
         API.get('init/getTags', data)
             .then(res => {
                 this.tags = res.data

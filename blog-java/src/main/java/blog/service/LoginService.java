@@ -65,20 +65,10 @@ public class LoginService {
 		Album album = new Album(null,username,"全部","");
 		albumMapper.insert(album);
 		// 初始化分类和标签
-		initCategory(username);
 		initTag(username);
 		return ComResult.success("注册成功");
 	}
 
-	private void initCategory(String authorId) {
-		Category category = new Category();
-		category.setAuthorId(authorId);
-		JSONObject json = new JSONObject();
-		String[] temp = {};
-		json.put("categories", temp);
-		category.setCategories(json.toJSONString());
-		categoryMapper.updateById(category);
-	}
 	private void initTag(String authorId){
 		Tag tag = new Tag();
 		tag.setAuthorId(authorId);

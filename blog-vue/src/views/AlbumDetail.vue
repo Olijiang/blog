@@ -302,6 +302,7 @@ export default {
 
     .ArticleInfo {
         user-select: none;
+        border-radius: 0px 0px 10px 10px;
         background-color: rgba(137, 133, 133, 0.5);
         position: absolute;
         width: 100%;

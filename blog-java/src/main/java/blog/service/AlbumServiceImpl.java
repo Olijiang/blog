@@ -6,12 +6,14 @@ import blog.entity.Album;
 import blog.entity.Image;
 import blog.mapper.AlbumMapper;
 import blog.mapper.ImageMapper;
+import blog.mapper.UserMapper;
 import blog.utils.myUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,6 +30,8 @@ public class AlbumServiceImpl {
 	private AlbumMapper albumMapper;
 	@Resource
 	private ImageMapper imageMapper;
+	@Resource
+	private UserMapper userMapper;
 
 	public ComResult update(String authorId, Album[] albums) {
 		// 获取 全部 的 id
@@ -100,6 +104,7 @@ public class AlbumServiceImpl {
 		String key = "albums" + authorId;
 		if ((albums = (List<Album>) LocalCatch.get(key)) == null) {
 			albums = albumMapper.getAlbums(authorId);
+			if (albums==null) return new ArrayList<>();
 			LocalCatch.put(key, albums);
 			return albums;
 		}

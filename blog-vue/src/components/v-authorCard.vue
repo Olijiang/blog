@@ -6,7 +6,7 @@
 
             <p class="author-name">{{ author.authorName }}
             </p>
-            <p style="font-size: 90%;color: #858585;"> {{ author.authorInfo }}</p>
+            <p style="font-size: 90%;color: #858585;user-select: none;"> {{ author.authorInfo }}</p>
 
             <div>
                 <span class="tag1">文章</span>
@@ -21,7 +21,21 @@
         </div>
         <!-- 文章分类 -->
         <div class="category">
-            文章分类
+            <div
+                style="font-size: 18px;width: 100%; margin: 10px auto;text-align: center; user-select: none;position: absolute;">
+                文章分类
+            </div>
+
+            <div style="overflow-y: auto;margin-top: 40px;height: calc(100% - 40px)">
+
+                <div class="item" v-for="(cat, index) in categories" :key="index">
+                    {{ index + 1 }}、{{ cat.category }} ({{ cat.articleNum }})
+                </div>
+                <div style="font-size: 15px;width: 100%; margin: 10px auto;text-align: center; user-select: none;"
+                    v-if="categories.length == 0">
+                    暂无分类
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -29,17 +43,30 @@
 
 
 <script>
+import API from '../utils/API'
+
 
 // Object.keys(author).forEach(key => { this.author[key] = author[key] })
 export default {
     data() {
         return {
+            categories: []
         }
     },
     computed: {
         author() {
             return this.$store.state.visitAuthor
         },
+    },
+    mounted() {
+        // 分类
+        API.get('init/getCategories', { authorId: this.author.username })
+            .then(res => {
+                this.categories = res.data
+                if (this.categories.length == 0) {
+                    this.categories = []
+                }
+            })
     }
 }
 </script>
@@ -59,7 +86,7 @@ export default {
     border: 1px solid #278b63;
     border-radius: 20px;
     transition: all 0.2s ease-in-out;
-    // position: absolute;
+
 
     &:hover {
         box-shadow: 0 0 10px rgb(219, 219, 219);
@@ -74,21 +101,19 @@ export default {
     .card();
 
     .tag {
+        user-select: none;
         display: inline-block;
         width: 30%;
         height: 30px;
     }
 
     .tag1 {
-        cursor: pointer;
+        user-select: none;
         display: inline-block;
         width: 30%;
         height: 30px;
         transition: 0.2s all ease-in-out;
-
-        &:hover {
-            color: #4b9797;
-        }
+        color: #4b9797;
     }
 
     .img {
@@ -102,22 +127,17 @@ export default {
         &:hover {
             transform: rotate(360deg);
             transition: all 0.8s ease;
-
+            transition-delay: 0.5s;
         }
     }
 }
 
 .author-name {
+    user-select: none;
     line-height: 10px;
     color: #ff0000;
     margin: 20px 0 5px 0;
     font-size: 20px;
-    transition: 0.3s all ease-in-out;
-    cursor: pointer;
-
-    &:hover {
-        color: #40b5ad;
-    }
 }
 
 .category {
@@ -125,7 +145,32 @@ export default {
     width: 100%;
     margin-top: 20px;
     height: 250px;
-    .card()
+    overflow: hidden;
+
+    ::-webkit-scrollbar {
+        width: 5px !important;
+        /*高宽分别对应横竖·滚动条的尺寸*/
+        height: 5px !important;
+    }
+
+    ::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.497);
+    }
+
+    .card();
+
+    .item {
+        user-select: none;
+        cursor: pointer;
+        margin-left: 40px;
+        height: 28px;
+        text-align: left;
+        overflow: hidden;
+
+        &:hover {
+            color: #4b9797;
+        }
+    }
 }
 </style>
 
