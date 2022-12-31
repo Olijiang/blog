@@ -1,6 +1,6 @@
 package blog.service;
 
-import blog.config.LocalCatch;
+import blog.config.LocalCache;
 import blog.entity.Category;
 import blog.mapper.CategoryMapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -34,8 +34,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category>{
 		Category category = categoryMapper.selectOne(wrapper);
 		category.setArticleNum(category.getArticleNum()+1);
 		categoryMapper.updateById(category);
-		LocalCatch.put( "category"+category.getId(),category);
-		LocalCatch.remove( "categories"+authorId);
+		LocalCache.put( "category"+category.getId(),category);
+		LocalCache.remove( "categories"+authorId);
 
 	}
 	public void articleMinusOne(String authorId, String categoryName){
@@ -45,19 +45,19 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category>{
 		Category category = categoryMapper.selectOne(wrapper);
 		category.setArticleNum(category.getArticleNum()-1);
 		categoryMapper.updateById(category);
-		LocalCatch.put( "category"+category.getId(),category);
-		LocalCatch.remove( "categories"+authorId);
+		LocalCache.put( "category"+category.getId(),category);
+		LocalCache.remove( "categories"+authorId);
 	}
 
 	public List<Category> getCategories(String authorId) {
 		List<Category> categories;
 		String key = "categories"+authorId;
-		if ((categories = (List<Category>) LocalCatch.get(key))==null) {
+		if ((categories = (List<Category>) LocalCache.get(key))==null) {
 			QueryWrapper<Category> wrapper = new QueryWrapper<>();
 			wrapper.eq("author_id",authorId);
 			categories = categoryMapper.selectList(wrapper);
 			if (categories==null) return new ArrayList<>();
-			LocalCatch.put(key, categories);
+			LocalCache.put(key, categories);
 			return categories;
 		}
 		return categories;
@@ -66,10 +66,10 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category>{
 	public Category getCategory(Integer id) {
 		Category category;
 		String key = "category"+id;
-		if ((category = (Category) LocalCatch.get(key))==null) {
+		if ((category = (Category) LocalCache.get(key))==null) {
 			category = categoryMapper.selectById(id);
 			if (category==null) return null;
-			LocalCatch.put(key, category);
+			LocalCache.put(key, category);
 			return category;
 		}
 		return category;
@@ -85,7 +85,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category>{
 		// 若没有这个分类
 		category = new Category(null,authorId, categoryName, 0);
 		categoryMapper.insert(category);
-		LocalCatch.remove("categories"+authorId);
+		LocalCache.remove("categories"+authorId);
 		log.info("新增分类："+category.getCategory());
 		return getCategories(authorId).size()+1;
 	}
@@ -95,7 +95,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category>{
 	public int updateCategories(String authorId, Category[] categories) {
 		// 获取当前作者的全部分类
 		List<Category> categoryList = getCategories(authorId);
-		LocalCatch.remove("categories" + authorId);
+		LocalCache.remove("categories" + authorId);
 		Category category1;
 		for (Category category : categories) {
 			if (category.getId()<0){
@@ -135,7 +135,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category>{
 		for (Category category : categoryList) {
 			if (category.getArticleNum() != 0) return -2;
 			categoryMapper.deleteById(category);
-			LocalCatch.remove("category" + category.getId());
+			LocalCache.remove("category" + category.getId());
 			log.info("删除分类：" + category.getCategory());
 		}
 		return 1;

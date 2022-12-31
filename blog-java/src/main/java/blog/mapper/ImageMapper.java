@@ -16,6 +16,9 @@ public interface ImageMapper extends BaseMapper<Image> {
 
 	List<ImageDTO> getImages(String authorId, int startPage, int pageSize);
 
+	List<ImageDTO> getPublicImages(String authorId, int startPage, int pageSize);
+
 	List<ImageDTO> getImagesByAlbum(String authorId, String albumName, int startPage, int pageSize);
 
+	List<ImageDTO> getImagesByPublicAlbum(String authorId, String albumName, int startPage, int pageSize);
 }

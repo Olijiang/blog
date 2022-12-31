@@ -1,11 +1,11 @@
 package blog.service;
 
-import blog.config.ComResult;
-import blog.config.LocalCatch;
+import blog.config.Result;
+import blog.config.LocalCache;
 import blog.entity.Category;
 import blog.entity.User;
 import blog.mapper.UserMapper;
-import blog.utils.JwtUtil;
+import blog.utils.TokenUtil;
 import blog.utils.myUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -37,24 +37,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>{
 	public User getUserById(String authorId){
 		User user;
 		String key = "user" + authorId;
-		if ((user = (User) LocalCatch.get(key)) == null) {
+		if ((user = (User) LocalCache.get(key)) == null) {
 			user = userMapper.selectById(authorId);
 			if (user==null) return null;
-			LocalCatch.put(key, user);
+			LocalCache.put(key, user);
 			return user;
 		}
 		return user;
 	}
 
 	@Transactional
-	public ComResult updateAuthor(User user, String[] tags, Category[] categories){
+	public Result updateAuthor(User user, String[] tags, Category[] categories){
 		//验证身份
-		String authorId = Objects.requireNonNull(JwtUtil.getUserFromToken(user.getPassword())).getUsername();
-		if (!authorId.equals(user.getUsername())) return ComResult.error("非本人操作");
+		String authorId = Objects.requireNonNull(TokenUtil.getUserFromToken(user.getPassword())).getUsername();
+		if (!authorId.equals(user.getUsername())) return Result.error("非本人操作");
 		// 更新分类, 分类需要验证身份, 异常回滚操作
 		int res = categoryService.updateCategories(authorId,categories);
 		if(res==-1) throw new RuntimeException();
-		if(res==-2) return ComResult.error(499,"当前分类下还有文章, 不能删除");
+		if(res==-2) return Result.error(499,"当前分类下还有文章, 不能删除");
 		// 更新标签
 		tagService.updateTags(authorId, tags);
 		// 更新用户信息
@@ -76,8 +76,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>{
 		user.setCategoryNum(categories.length);
 		userMapper.updateById(user);
 		log.info(authorId+"：更新信息"+user);
-		LocalCatch.put("user"+authorId,user);
-		return ComResult.success();
+		LocalCache.put("user"+authorId,user);
+		return Result.success();
 	}
 
 

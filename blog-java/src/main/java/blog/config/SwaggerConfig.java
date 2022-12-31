@@ -12,6 +12,7 @@ import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import java.io.File;
 
@@ -23,7 +24,7 @@ import java.io.File;
  * @date 2022/10/21 16:44
  */
 @Configuration
-//@EnableSwagger2
+@EnableSwagger2
 public class SwaggerConfig extends WebMvcConfigurationSupport {
 
 
@@ -34,6 +35,10 @@ public class SwaggerConfig extends WebMvcConfigurationSupport {
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(tokenInterceptor)
 				.addPathPatterns("/**");
+//				.excludePathPatterns("/swagger-resources/**")
+//				.excludePathPatterns("/webjars/**")
+//				.excludePathPatterns("/v2/**")
+//				.excludePathPatterns("/swagger-ui.html/**");
 		super.addInterceptors(registry);
 	}
 	// 静态资源放行
@@ -43,11 +48,17 @@ public class SwaggerConfig extends WebMvcConfigurationSupport {
 		registry.addResourceHandler("/blog") // 访问路径
 				.addResourceLocations("classpath:/static/index.html"); //映射后的真实路径,结尾必须加/
 
-		registry.addResourceHandler("/**") // 访问路径
-				.addResourceLocations("classpath:/static/"); //映射后的真实路径,结尾必须加/
+//		registry.addResourceHandler("/**") // 访问路径
+//				.addResourceLocations("classpath:/static/"); //映射后的真实路径,结尾必须加/
 
 		registry.addResourceHandler("/blogData/**")
 				.addResourceLocations("file:///"+projectPath + File.separator+ "blogData" + File.separator);
+
+		registry.addResourceHandler("doc.html")
+				.addResourceLocations("classpath:/META-INF/resources/");
+		registry.addResourceHandler("/webjars/**")
+				.addResourceLocations("classpath:/META-INF/resources/webjars/");
+
 		super.addResourceHandlers(registry);
 	}
 

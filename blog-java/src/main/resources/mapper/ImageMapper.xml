@@ -8,10 +8,23 @@
         where i.album_id=a.id and i.author_id=#{authorId} limit #{startPage},#{pageSize};
     </select>
 
+    <select id="getPublicImages" resultType="blog.entity.ImageDTO">
+        select i.id, i.author_id, i.simplify_img, i.original_img, a.album_name
+        from image i,album a
+        where i.album_id=a.id and i.author_id=#{authorId} and i.is_public=1 limit #{startPage},#{pageSize};
+    </select>
+
     <select id="getImagesByAlbum" resultType="blog.entity.ImageDTO">
         select i.id, i.author_id, i.simplify_img, i.original_img, a.album_name
         from image i,album a
         where i.album_id=a.id and i.author_id=#{authorId} and a.album_name = #{albumName}
+        limit #{startPage},#{pageSize};
+    </select>
+
+    <select id="getImagesByPublicAlbum" resultType="blog.entity.ImageDTO">
+        select i.id, i.author_id, i.simplify_img, i.original_img, a.album_name
+        from image i,album a
+        where i.album_id=a.id and i.author_id=#{authorId} and a.album_name = #{albumName} and a.is_public = 1
         limit #{startPage},#{pageSize};
     </select>
 

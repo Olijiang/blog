@@ -54,7 +54,8 @@ export default {
             queryData: {
                 authorId: "",
                 startPage: 0,
-                pageSize: 5
+                pageSize: 5,
+                queryWord: ""
             },
             author: {},
             coverImg: "",
@@ -69,7 +70,8 @@ export default {
                 let scrollHeight = document.documentElement.scrollHeight;//内容高度
                 if (clientHeight + scrollTop - scrollHeight > -10) {
                     this.endmsg = "正在加载..."
-                    API.get('init/getArticles', this.queryData)
+                    let api = (this.isAuthor)?("article/getArticles"):("init/getPublicArticles")
+                    API.get(api, this.queryData)
                         .then(res => {
                             if (res.code == 200) {
                                 // console.log(res.data);
@@ -97,6 +99,10 @@ export default {
                 return this.$store.state.isLogin;
             }
         },
+        isAuthor() {
+            // 登录并且当前访问的authorId 等于登录 Id
+            return (this.$store.state.isLogin && this.authorId == this.$store.state.author.username)
+        }
     },
     watch: {
 
@@ -116,22 +122,42 @@ export default {
             })
         // 查询作者文章 5篇
         this.queryData.authorId = this.authorId
-        API.get('init/getArticles', this.queryData)
-            .then(res => {
-                if (res.code == 200) {
-                    // console.log(res.data);
-                    res.data.forEach((element, index) => {
-                        element.index = this.queryData.startPage + index
-                        this.articleList.push(element)
-                    });
-                    if (res.data.length < this.queryData.pageSize) {
-                        this.endmsg = "没有更多了..."
-                        window.removeEventListener('scroll', this.handleScroll)
+        if (this.isAuthor) {
+            API.get('article/getArticles', this.queryData)
+                .then(res => {
+                    if (res.code == 200) {
+                        // console.log(res.data);
+                        res.data.forEach((element, index) => {
+                            element.index = this.queryData.startPage + index
+                            this.articleList.push(element)
+                        });
+                        if (res.data.length < this.queryData.pageSize) {
+                            this.endmsg = "没有更多了..."
+                            window.removeEventListener('scroll', this.handleScroll)
+                        }
+                        this.ok++
+                        this.queryData.startPage = this.queryData.startPage + 5
                     }
-                    this.ok++
-                    this.queryData.startPage = this.queryData.startPage + 5
-                }
-            })
+                })
+        } else {
+            API.get('init/getPublicArticles', this.queryData)
+                .then(res => {
+                    if (res.code == 200) {
+                        // console.log(res.data);
+                        res.data.forEach((element, index) => {
+                            element.index = this.queryData.startPage + index
+                            this.articleList.push(element)
+                        });
+                        if (res.data.length < this.queryData.pageSize) {
+                            this.endmsg = "没有更多了..."
+                            window.removeEventListener('scroll', this.handleScroll)
+                        }
+                        this.ok++
+                        this.queryData.startPage = this.queryData.startPage + 5
+                    }
+                })
+        }
+
         // 等待请求, 200ms 后显示
         setTimeout(() => {
             this.show = true

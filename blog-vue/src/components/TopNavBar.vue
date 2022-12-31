@@ -205,10 +205,8 @@ export default {
             })
         },
         getCode() {
-            this.loginForm.timeStamp = new Date().getTime()
-            let data = { timeStamp: this.loginForm.timeStamp }
             this.loginForm.code = ""
-            API.get("getCode", data)
+            API.get("getCode")
                 .then(res => {
                     if (res.code == 200) {
                         this.src = "data:image/jpg;base64," + res.data
@@ -242,7 +240,7 @@ export default {
             })
         },
         resetForm() {
-            this.$refs['loginRef'].resetFields()
+            this.$refs['loginRef']?.resetFields()
         },
 
         // navBar

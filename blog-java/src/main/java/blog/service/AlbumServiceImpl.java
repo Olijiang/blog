@@ -1,12 +1,11 @@
 package blog.service;
 
-import blog.config.ComResult;
-import blog.config.LocalCatch;
+import blog.config.Result;
+import blog.config.LocalCache;
 import blog.entity.Album;
 import blog.entity.Image;
 import blog.mapper.AlbumMapper;
 import blog.mapper.ImageMapper;
-import blog.mapper.UserMapper;
 import blog.utils.myUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
@@ -30,14 +29,12 @@ public class AlbumServiceImpl {
 	private AlbumMapper albumMapper;
 	@Resource
 	private ImageMapper imageMapper;
-	@Resource
-	private UserMapper userMapper;
 
-	public ComResult update(String authorId, Album[] albums) {
+	public Result update(String authorId, Album[] albums) {
 		// 获取 全部 的 id
 		Integer theId = albumMapper.getIdByName(authorId, "全部");
 		// 获取当前作者的全部相册
-		List<Album> rawAlbums = getAlbums(authorId);
+		List<Album> rawAlbums = getAllAlbums(authorId);
 
 		Album album1;
 		for (Album album : albums) {
@@ -52,8 +49,8 @@ public class AlbumServiceImpl {
 			}else{
 				// 修改和删除都需要验证身份， 确保当前登录用户只能操作自己的内容
 				album1 = albumMapper.selectById(album.getId());
-				if (album1==null) return ComResult.error("相册不存在");
-				if (!album1.getAuthorId().equals(authorId)) return ComResult.error("非法操作");
+				if (album1==null) return Result.error("相册不存在");
+				if (!album1.getAuthorId().equals(authorId)) return Result.error("非法操作");
 				// 重设 authorId
 				album.setAuthorId(authorId);
 				if (album.getId().equals(theId)){
@@ -90,25 +87,39 @@ public class AlbumServiceImpl {
 				imageMapper.deleteById(image);
 			}
 			// 清除缓存
-			LocalCatch.removeByPre("imageList" + authorId);
+			LocalCache.removeByPre("imageList" + authorId);
 			albumMapper.deleteById(album);
 			log.info("删除相册："+album.getAlbumName());
 		}
-		LocalCatch.remove("albums" + authorId);
-		return ComResult.success("相册编辑成功");
+		LocalCache.remove("albums" + authorId);
+		return Result.success("相册编辑成功");
 	}
 
 	// 根据 authorId 获取相册分类信息
-	public List<Album> getAlbums(String authorId) {
+	public List<Album> getAllAlbums(String authorId) {
 		List<Album> albums;
 		String key = "albums" + authorId;
-		if ((albums = (List<Album>) LocalCatch.get(key)) == null) {
+		if ((albums = (List<Album>) LocalCache.get(key)) == null) {
 			albums = albumMapper.getAlbums(authorId);
 			if (albums==null) return new ArrayList<>();
-			LocalCatch.put(key, albums);
+			LocalCache.put(key, albums);
 			return albums;
 		}
 		return albums;
 	}
 
+	public List<Album> getPublicAlbums(String authorId) {
+		List<Album> albums;
+		String key = "albums" + authorId + "public";
+		if ((albums = (List<Album>) LocalCache.get(key)) == null) {
+			QueryWrapper<Album> wrapper = new QueryWrapper<Album>()
+					.eq("author_id",authorId)
+					.eq("is_public",1);
+			albums = albumMapper.selectList(wrapper);
+			if (albums==null) return new ArrayList<>();
+			LocalCache.put(key, albums);
+			return albums;
+		}
+		return albums;
+	}
 }

@@ -5,6 +5,7 @@ import router from "./router";
 import store from './store';
 import '@/assets/css/hight.css'
 import '@/assets/css/markdown.css'
+// import 'viewerjs/dist/viewer.css'
 
 const app = createApp(App)
 

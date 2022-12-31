@@ -2,8 +2,4 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="blog.mapper.ArticleMapper">
 
-    <select id="getArticles" resultType="blog.entity.Article">
-        select * from article where author_id=#{authorId} order by id DESC limit #{startPage},#{pageSize};
-    </select>
-
 </mapper>

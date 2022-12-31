@@ -1,9 +1,10 @@
 package blog.config;
 
-import blog.utils.JwtUtil;
+import blog.utils.TokenUtil;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,20 +32,18 @@ public class TokenInterceptor implements HandlerInterceptor {
 		String url = request.getRequestURI();
 		String token = request.getHeader("token");
 
-//		System.out.println(url);
+		log.info(url);
+		// 重定位到开始页面
 		if (url.equals("/")) {
 			response.sendRedirect(request.getContextPath()+"/index.html");
 			return false;
 		}
-
-		for (String item : this.urls) {
-			if (!url.matches(item)) return true;
-		}
+		// 处理错误请求
 		if (url.equals("/error")){
 			try{
 				response.setCharacterEncoding("UTF-8");
 				response.setContentType("application/json; charset=utf-8");
-				ComResult res = ComResult.error("非法请求");
+				Result res = Result.error("非法请求");
 				PrintWriter out = response.getWriter();
 				// 返回json信息给前端
 				out.append(JSON.toJSONString(res)).flush();
@@ -55,16 +54,29 @@ public class TokenInterceptor implements HandlerInterceptor {
 				return false;
 			}
 		}
-
-		if (token!=null && JwtUtil.getUserFromToken(token)!=null) {
-			// 可以解析出user
+		// url 挨个匹配拦截列表的模式串
+		boolean flag = false;
+		for (String item : this.urls) {
+			if (url.matches(item)){
+				// 匹配成功，进入拦截阶段
+				flag = true;
+				break;
+			}
+		}
+		// 放行不在列表的url
+		if (!flag) return true;
+		// 处理需要拦截的url
+		if (token!=null && TokenUtil.getUserFromToken(token)!=null) {
+			// 检测token是否快过期
+			String newToken = TokenUtil.refreshToken(token);
+			if (newToken!=null) response.addHeader("token",newToken);
 			return true;
 		}else {
-			System.out.println("越权访问"+url);
+			log.warn("越权访问"+url);
 			try{
 				response.setCharacterEncoding("UTF-8");
 				response.setContentType("application/json; charset=utf-8");
-				ComResult res = ComResult.error(401,"请先登录在访问！");
+				Result res = Result.error(401,"请先登录在访问！");
 				PrintWriter out = response.getWriter();
 				// 返回json信息给前端
 				out.append(JSON.toJSONString(res)).flush();
@@ -77,4 +89,11 @@ public class TokenInterceptor implements HandlerInterceptor {
 		}
 	}
 
+	@Override
+	public void postHandle(
+			HttpServletRequest request, HttpServletResponse response, Object handler,
+			ModelAndView modelAndView)  {
+
+
+	}
 }

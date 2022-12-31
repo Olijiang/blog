@@ -1,7 +1,7 @@
 package blog.controller;
 
 
-import blog.config.ComResult;
+import blog.config.Result;
 import blog.entity.Category;
 import blog.entity.User;
 import blog.service.UserServiceImpl;
@@ -36,7 +36,7 @@ public class UserController {
 
 	@PostMapping("/update")
 	@Transactional
-	public ComResult update(@RequestBody Map<String, Object> map){
+	public Result update(@RequestBody Map<String, Object> map){
 
 		User user = objectMapper.convertValue(map.get("author"),User.class);
 		String[] tags = objectMapper.convertValue(map.get("tags"),String[].class);

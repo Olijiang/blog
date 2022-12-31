@@ -1,7 +1,7 @@
 package blog.service;
 
-import blog.config.ComResult;
-import blog.config.LocalCatch;
+import blog.config.Result;
+import blog.config.LocalCache;
 import blog.config.PathConfig;
 import blog.entity.Article;
 import blog.entity.ArticleDTO;
@@ -13,6 +13,7 @@ import blog.utils.myUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -48,31 +49,89 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 	@Resource
 	private UserServiceImpl userService;
 
-	public ComResult getArticleContent(String filePath){
-		String article= getContent(filePath);
-		if (article==null) return ComResult.error("获取文章内容失败");
-		return ComResult.success("获取文章内容成功",article);
+	public Result getArticleContent(String filePath){
+		String article = getContent(filePath);
+		if (article==null) return Result.error("获取文章内容失败");
+		return Result.success("获取文章内容成功",article);
 	}
 
-	public ComResult getArticles(String authorId,int startPage, int pageSize) {
+	public List<Article> getPublicArticles(String authorId, int startPage, int pageSize) {
 		List<Article> articles;
-		String key = "articleList" + authorId + "-" + startPage + "-" + (startPage+pageSize);
-		if ((articles = (List<Article>) LocalCatch.get(key)) == null) {
-			articles = articleMapper.getArticles(authorId,startPage,pageSize);
-			LocalCatch.put(key, articles);
-			return ComResult.success("获取文章列表成功", articles);
+		String key = "articleList" + authorId + "-public-" + startPage + "-" + (startPage+pageSize);
+		if ((articles = (List<Article>) LocalCache.get(key)) == null) {
+			QueryWrapper<Article> wrapper = new QueryWrapper<Article>()
+					.eq("author_id",authorId)
+					.eq("is_public",1)
+					.orderByDesc("create_time")
+					.last("limit "+startPage+","+pageSize);
+			articles = articleMapper.selectList(wrapper);
+			LocalCache.put(key, articles);
+			return articles;
 		}
-		return ComResult.success("获取文章列表成功", articles);
+		return articles;
 	}
 
-	public ComResult getArticleById(Integer articleId){
-		Article article = getArticle(articleId);
-		return ComResult.success("获取文章成功",article);
+	public List<Article> getAllArticles(String authorId, String queryWord, int startPage, int pageSize) {
+		List<Article> articles;
+		String key = "articleList" + authorId + "-All-" + startPage + "-" + (startPage+pageSize);
+		if ((articles = (List<Article>) LocalCache.get(key)) == null) {
+			QueryWrapper<Article> wrapper = new QueryWrapper<Article>()
+					.eq("author_id",authorId)
+					.orderByDesc("create_time")
+					.last("limit "+startPage+","+pageSize);
+			articles = articleMapper.selectList(wrapper);
+			LocalCache.put(key, articles);
+			return articles;
+		}
+		return articles;
 	}
 
-	public ComResult deleteArticle(Integer articleId, String authorId) {
+	public List<Article> getPrivateArticles(String authorId, String queryWord, int startPage, int pageSize) {
+		List<Article> articles;
+		String key = "articleList" + authorId + "-private-" + startPage + "-" + (startPage+pageSize);
+		if ((articles = (List<Article>) LocalCache.get(key)) == null) {
+			QueryWrapper<Article> wrapper = new QueryWrapper<Article>()
+					.eq("author_id",authorId)
+					.eq("is_public",0)
+					.orderByDesc("create_time")
+					.last("limit "+startPage+","+pageSize);
+			articles = articleMapper.selectList(wrapper);
+			LocalCache.put(key, articles);
+			return articles;
+		}
+		return articles;
+	}
+
+	public Article getPublicArticle(Integer articleId){
+		Article article;
+		String key = "article" + articleId;
+		if ((article = (Article) LocalCache.get(key))==null){
+			QueryWrapper<Article> wrapper = new QueryWrapper<Article>()
+					.eq("id",articleId)
+					.eq("is_public",1);
+			article = articleMapper.selectOne(wrapper);
+			if (article==null) return null;
+			LocalCache.put(key,article);
+			return article;
+		}
+		return article;
+	}
+
+	public Article getArticle(Integer articleId){
+		Article article;
+		String key = "article" + articleId;
+		if ((article = (Article) LocalCache.get(key))==null){
+			article = articleMapper.selectById(articleId);
+			if (article==null) return null;
+			LocalCache.put(key,article);
+			return article;
+		}
+		return article;
+	}
+
+	public Result deleteArticle(Integer articleId, String authorId) {
 		Article article = getArticle(articleId);
-		if (article == null || !article.getAuthorId().equals(authorId)) return ComResult.error("非法操作");
+		if (article == null || !article.getAuthorId().equals(authorId)) return Result.error("非法操作");
 		// 删除文章
 		myUtil.deleteFile(article.getContent());
 		// 删除图片
@@ -80,30 +139,30 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		// 删除记录
 		articleMapper.deleteById(articleId);
 		// 清除缓存
-		LocalCatch.removeByPre("articleList"+authorId);
-		LocalCatch.remove("article"+articleId);
+		LocalCache.removeByPre("articleList"+authorId);
+		LocalCache.remove("article"+articleId);
 		// 更新作者文章信息
 		User user = userService.getUserById(authorId);
 		user.setArticleNum(user.getArticleNum()-1);
-		LocalCatch.put("user"+authorId,user);
+		LocalCache.put("user"+authorId,user);
 		userService.updateById(user);
 		categoryService.articleMinusOne(authorId,article.getCategory());
 		log.info("删除文章成功 id"+ article.getAuthorId() + article.getTitle());
-		return ComResult.success();
+		return Result.success();
 	}
 
-	public ComResult addArticle(ArticleDTO articleDTO, String authorId) {
+	public Result addArticle(ArticleDTO articleDTO, String authorId) {
 		User user = userService.getUserById(authorId);
 		Article article = new Article();
 		// 图片
 //		System.out.println(articleDTO);
 		String imgPath = myUtil.saveImg(articleDTO.getImg(),authorId);
-		if (imgPath==null) return ComResult.error("文章发表失败, 原因：插图");
+		if (imgPath==null) return Result.error("文章发表失败, 原因：插图");
 
 		article.setImg(imgPath);
 		// 文章
 		String articlePath = saveContent(articleDTO.getContent(),authorId);
-		if (articlePath==null) return ComResult.error("文章发表失败, 原因：文章内容");
+		if (articlePath==null) return Result.error("文章发表失败, 原因：文章内容");
 
 		article.setContent(articlePath);
 		// 设置标题
@@ -136,22 +195,22 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		article.setUpdateTime(date);
 		log.info("成功添加新文章:"+article.getTitle());
 		articleMapper.insert(article);
-		LocalCatch.removeByPre("articleList"+authorId);
+		LocalCache.removeByPre("articleList"+authorId);
 		log.info("添加文章成功 id："+ article.getAuthorId()+" title:" + article.getTitle());
 		// 更新作者文章信息
 		user.setArticleNum(user.getArticleNum()+1);
-		LocalCatch.put("user"+authorId,user);
+		LocalCache.put("user"+authorId,user);
 		userService.updateById(user);
-		return ComResult.success("添加成功");
+		return Result.success("添加成功");
 	}
 
-	public ComResult updateArticle(ArticleDTO articleDTO, String authorId) {
+	public Result updateArticle(ArticleDTO articleDTO, String authorId) {
 		User user = userService.getUserById(authorId);
 		Article article = getArticle(articleDTO.getId());
-		if (article==null) return ComResult.error("文章不存在");
+		if (article==null) return Result.error("文章不存在");
 		// 验证作者和文章是否对应
 		if (!Objects.requireNonNull(getArticle(articleDTO.getId())).getAuthorId().equals(authorId))
-			return ComResult.error("非法操作");
+			return Result.error("非法操作");
 		// 保存图片
 		if (!articleDTO.getImg().equals("")){
 			// 若图片修改过 先删除原图片
@@ -159,7 +218,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 			myUtil.deleteFile(rawPath);
 			String imgPath = myUtil.saveImg(articleDTO.getImg(),authorId);
 			if (imgPath==null){
-				return ComResult.error("文章保存失败, 原因：插图");
+				return Result.error("文章保存失败, 原因：插图");
 			}
 			article.setImg(imgPath);
 		}
@@ -169,7 +228,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		// 保存文章
 		String articlePath = saveContent(articleDTO.getContent(),authorId);
 		if (articlePath==null){
-			return ComResult.error("文章保存失败, 原因：文章内容");
+			return Result.error("文章保存失败, 原因：文章内容");
 		}
 		article.setContent(articlePath);
 		// title
@@ -201,34 +260,22 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 
 		article.setId(articleDTO.getId());
 		articleMapper.updateById(article);
-		LocalCatch.put("article"+article.getId(),article);
-		LocalCatch.removeByPre("articleList"+authorId);
+		LocalCache.put("article"+article.getId(),article);
+		LocalCache.removeByPre("articleList"+authorId);
 		// 更新作者文章信息
 		userService.updateById(user);
-		LocalCatch.put("user"+authorId,user);
+		LocalCache.put("user"+authorId,user);
 		log.info("修改文章成功 id："+ article.getAuthorId()+" title:" + article.getTitle());
-		return ComResult.success("修改成功");
+		return Result.success("修改成功");
 	}
 
-	public ComResult getTagsById(String authorId){
+	public Result getTagsById(String authorId){
 		String[] tags= getTags(authorId);
-		return ComResult.success("获取标签成功",tags);
+		return Result.success("获取标签成功",tags);
 	}
 	/**
 	 * @description: 以下部分为内部封装的方法 方便操作  private
 	 */
-
-	private Article getArticle(Integer articleId){
-		Article article;
-		String key = "article" + articleId;
-		if ((article = (Article) LocalCatch.get(key))==null){
-			article = articleMapper.selectById(articleId);
-			if (article==null) return null;
-			LocalCatch.put(key,article);
-			return article;
-		}
-		return article;
-	}
 
 	//保存错误时返回null,  成功返回相对路径
 	public String saveContent(String contentData,String authorId) {
@@ -252,12 +299,12 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 	private String getContent(String filePath) {
 		String articleContent;
 		String key = "articleContent"+filePath;
-		if ((articleContent = (String) LocalCatch.get(key))==null) {
+		if ((articleContent = (String) LocalCache.get(key))==null) {
 			String projectPath = System.getProperty("user.dir");
 			String storagePath = projectPath + File.separator+ filePath;
 			articleContent =  myUtil.readTxt(storagePath);
 			if (articleContent==null) return null;
-			LocalCatch.put(key, articleContent);
+			LocalCache.put(key, articleContent);
 			return articleContent;
 		}
 		return articleContent;
@@ -268,12 +315,12 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 	private String[] getTags(String authorId){
 		String[] tags;
 		String key = "tags"+authorId;
-		if ((tags = (String[]) LocalCatch.get(key))==null) {
+		if ((tags = (String[]) LocalCache.get(key))==null) {
 			Tag tag = tagMapper.selectById(authorId);
 			if (tag==null) return new String[] {};
 			JSONArray jsonArray = (JSONArray) JSON.parseObject(tag.getTags()).get("tags");
 			tags = jsonToArray(jsonArray);
-			LocalCatch.put(key, tags);
+			LocalCache.put(key, tags);
 			return tags;
 		}
 		return tags;
@@ -282,7 +329,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 	private void updateTags(String authorId, String[] tags){
 		String[] rawTags = getTags(authorId);
 		String[] newTags = myUtil.union(rawTags, tags);
-		LocalCatch.put("tags"+authorId,newTags);
+		LocalCache.put("tags"+authorId,newTags);
 		Tag tag = new Tag();
 		tag.setAuthorId(authorId);
 		JSONObject json = new JSONObject();
@@ -298,4 +345,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		});
 		return list.toArray(new String[0]);
 	}
+
+
 }

@@ -1,5 +1,3 @@
-import blog.config.LocalCatch;
-
 /**
  * @author ZGB
  * @version 1.0
@@ -8,15 +6,23 @@ import blog.config.LocalCatch;
  */
 public class Localtest {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 
-		LocalCatch.put("articleList123_11","1111");
-		LocalCatch.put("articleList123_22","2222");
-		LocalCatch.put("articleList123_33","3333");
-		LocalCatch.removeByPre("articleList");
-		System.out.println(LocalCatch.get("articleList123_11"));
-		System.out.println(LocalCatch.get("articleList123_22"));
-		System.out.println(LocalCatch.get("articleList123_33"));
+		String[] urls = {
+				"/article/.*",
+				"/image/.*",
+				"/album/.*",
+				"/user/.*"
+		};
+		String url = "/article/get";
+		for (String item : urls) {
+			if (!url.matches(item)){
+				System.out.println(url+"不匹配");
+
+			}else{
+				System.out.println(url+"匹配");
+			}
+		}
 
 	}
 

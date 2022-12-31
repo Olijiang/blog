@@ -1,12 +1,14 @@
 package blog.service;
 
-import blog.config.ComResult;
-import blog.entity.*;
+import blog.config.Result;
+import blog.entity.Album;
+import blog.entity.LoginInfo;
+import blog.entity.Tag;
+import blog.entity.User;
 import blog.mapper.AlbumMapper;
-import blog.mapper.CategoryMapper;
 import blog.mapper.TagMapper;
 import blog.mapper.UserMapper;
-import blog.utils.JwtUtil;
+import blog.utils.TokenUtil;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -29,44 +31,42 @@ public class LoginService {
 	@Resource
 	private AlbumMapper albumMapper;
 	@Resource
-	private CategoryMapper categoryMapper;
-	@Resource
 	private TagMapper tagMapper;
 
-	public ComResult login(LoginInfo loginInfo){
+	public Result login(LoginInfo loginInfo){
 		String username = loginInfo.getUsername();
 		String password = loginInfo.getPassword();
 		User user = userMapper.selectById(username);
-		if (user==null) return ComResult.error("用户不存在");
+		if (user==null) return Result.error("用户不存在");
 		if (user.getPassword().equals(password)){
 			// 登录成功
 			loginInfo.setPassword("***");
-			String token =  JwtUtil.generateToken(loginInfo);
+			String token =  TokenUtil.generateToken(loginInfo);
 			user.setPassword(token);
 			log.info("用户登录："+username);
-			return ComResult.success("登录成功",user);
+			return Result.success("登录成功",user);
 		}else{
-			return ComResult.error("密码错误");
+			return Result.error("密码错误");
 		}
 	}
 
 	@Transactional
 	//  开启事务, 发生异常时会回滚操作, 因此不能用try主动捕获异常
-	public ComResult register(LoginInfo loginInfo) {
+	public Result register(LoginInfo loginInfo) {
 		String username = loginInfo.getUsername();
 		String password = loginInfo.getPassword();
 		User user = userMapper.selectById(username);
-		if (user!=null) return ComResult.error("用户名已被占用, 请再想一个吧");
+		if (user!=null) return Result.error("用户名已被占用, 请再想一个吧");
 
 		// 添加登录账户
 		user = new User(username, password, "作者name","作者简介","博客name", "博客简介", 0, 0, 0, "","");
 		userMapper.insert(user);
 		// 初始化相册
-		Album album = new Album(null,username,"全部","");
+		Album album = new Album(null,username,"全部","",1);
 		albumMapper.insert(album);
 		// 初始化分类和标签
 		initTag(username);
-		return ComResult.success("注册成功");
+		return Result.success("注册成功");
 	}
 
 	private void initTag(String authorId){

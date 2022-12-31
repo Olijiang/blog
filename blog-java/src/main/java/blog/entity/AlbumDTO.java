@@ -26,4 +26,6 @@ public class AlbumDTO {
 	private Boolean changeFlag;
 
 	private Integer nums;
+
+	private int isPublic;
 }

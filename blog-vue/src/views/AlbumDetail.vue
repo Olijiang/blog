@@ -19,7 +19,7 @@
             <el-col class="container">
                 <el-row>
                     <div style="margin:0 0 1% 2.5%;height: 30px; opacity: 0.7;">
-                        <el-button v-if="showFlag" type="primary" @click="management">管理</el-button>
+                        <el-button v-if="isAuthor" type="primary" @click="management">管理</el-button>
                     </div>
                     <transition name="el-zoom-in-top">
                         <div style="margin:0 0 1% 1%;height: 30px; opacity: 0.7;" v-if="editFlag">
@@ -46,7 +46,8 @@
                         </transition>
                         <transition name="el-zoom-in-top">
                             <el-image class="photo" :src="item.simplifyImg" fit="cover" v-show="item.ok"
-                                @click="previewImage(item.originalImg)" />
+                                @click="previewImg[0] = item.originalImg" :preview-src-list="previewImg"
+                                :initial-index="0" preview-teleported />
                         </transition>
                     </div>
                 </el-row>
@@ -54,13 +55,6 @@
             <el-col class="space"></el-col>
         </el-row>
         <div class="endmsg">{{ endmsg }}</div>
-        <!-- 预览Dialog -->
-        <el-dialog v-model="previewDialog" top="60px" :append-to-body="true" style="background-color: transparent;"
-            width="60%">
-            <div class="imgPreviewBox">
-                <img class="img" :src="dialogImageUrl" />
-            </div>
-        </el-dialog>
     </div>
 </template>
 
@@ -76,7 +70,8 @@ export default {
     props: ["data"],
     data() {
         return {
-            previewDialog: false,
+            coverImg:"",
+            previewImg: [],
             dialogImageUrl: "",
             editFlag: false,
             authorId: "",
@@ -108,7 +103,8 @@ export default {
                 let scrollHeight = document.documentElement.scrollHeight;//内容高度
                 if (clientHeight + scrollTop - scrollHeight > -10) {
                     this.endmsg = "正在加载..."
-                    API.get('init/getImagesByAlbum', this.queryData)
+                    let api = (this.isAuthor)?("image/getImages"):("init/getPublicImages")
+                    API.get(api, this.queryData)
                         .then(res => {
                             if (res.code == 200) {
                                 res.data.forEach(e => {
@@ -220,25 +216,10 @@ export default {
         },
     },
     computed: {
-        showFlag() {
+        isAuthor() {
             // 登录并且当前访问的authorId 等于登录 Id
-            if (this.$store.state.isLogin && this.authorId == this.$store.state.author.username)
-                return true
-            else
-                return false
+            return (this.$store.state.isLogin && this.authorId == this.$store.state.author.username)
         },
-        coverImg() {
-            let list = this.$store.state.albums
-            let len = list.length
-            for (let i = 0; i < len; i++) {
-                if (this.albumName == list[i].albumName) {
-                    return list[i].coverImg
-                }
-            }
-        }
-    },
-    watch: {
-
     },
     mounted() {
         window.addEventListener('scroll', this.handleScroll)
@@ -247,8 +228,8 @@ export default {
 
         this.queryData.authorId = this.authorId
         this.queryData.albumName = this.albumName
-        console.log(this.queryData);
-        API.get("init/getImagesByAlbum", this.queryData)
+        let api = (this.isAuthor)?("image/getImages"):("init/getPublicImages")
+        API.get(api, this.queryData)
             .then(res => {
                 if (res.code == 200) {
                     res.data.forEach(e => {
@@ -273,6 +254,12 @@ export default {
                     this.queryData.pageSize = 8
                 }
             })
+        let albums = this.$store.state.albums
+        albums.forEach(e=>{
+            if(e.albumName == this.albumName)
+                this.coverImg = e.coverImg
+        })
+
     },
     unmounted() {
         window.removeEventListener('scroll', this.handleScroll)

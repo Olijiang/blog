@@ -12,8 +12,8 @@ const instance = axios.create({
 // 添加请求拦截器
 instance.interceptors.request.use(
   function (config) {
-    if (store.state.author != undefined && store.state.author.password != "") {
-      config.headers['token'] = store.state.author.password
+    if (store.state.isLogin) {
+      config.headers['token'] = store.state.token
     }
     return config;
   },
@@ -28,8 +28,14 @@ instance.interceptors.response.use(
   function (response) {
     // response.status 在 2xx 范围内的状态码都会触发该函数。服务器正确返回, 包括返回错误信息
     // 对响应数据做点什么
-    console.log(response.data.message, response.data);
-    if (response.data.code != 200) {
+    
+    if(response.data.code == 200){
+      //设置token
+      console.log(response.data.message, response.data);
+      if(response.headers.token!=undefined)
+        store.state.token = response.headers.token
+    }
+    if (response.data.code != 200 && response.data.message!=undefined) {
       switch (response.data.code) {
         case 401://token 过期
           ElMessage({

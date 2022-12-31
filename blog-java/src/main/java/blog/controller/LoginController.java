@@ -1,13 +1,16 @@
 package blog.controller;
 
-import blog.config.ComResult;
-import blog.config.LocalCatch;
+import blog.config.Result;
+import blog.config.LocalCache;
 import blog.entity.LoginInfo;
 import blog.service.LoginService;
-import blog.utils.JwtUtil;
+import blog.utils.TokenUtil;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 
 /**
@@ -24,35 +27,37 @@ public class LoginController {
 
 	@ApiOperation("登录操作")
 	@PostMapping("/login")
-	public ComResult login(@RequestBody LoginInfo loginInfo){
-		String code = (String) LocalCatch.get(loginInfo.getTimeStamp());
+	public Result login(@RequestBody LoginInfo loginInfo, HttpServletRequest request){
+		String ip =  request.getRemoteAddr();
+		String key = DigestUtils.md5DigestAsHex(ip.getBytes()).substring(5,20);
+		String code = (String) LocalCache.get(key);
 		if (loginInfo.getCode().equals(code)){
-			LocalCatch.remove(loginInfo.getTimeStamp());
+			LocalCache.remove(loginInfo.getTimeStamp());
 			return loginService.login(loginInfo);
 		}else{
-			return ComResult.error("验证码错误");
+			return Result.error("验证码错误");
 		}
 	}
 
 	@ApiOperation("刷新token")
 	@GetMapping("/refreshToken")
-	public ComResult refreshToken(@RequestHeader("token") String token ){
-		if (token!=null && JwtUtil.getUserFromToken(token)!=null){
-			LoginInfo loginInfo = JwtUtil.getUserFromToken(token);
-			token = JwtUtil.generateToken(loginInfo);
-			return ComResult.success("刷新token成功",token);
+	public Result refreshToken(@RequestHeader("token") String token ){
+		if (token!=null && TokenUtil.getUserFromToken(token)!=null){
+			LoginInfo loginInfo = TokenUtil.getUserFromToken(token);
+			token = TokenUtil.generateToken(loginInfo);
+			return Result.success("刷新token成功",token);
 		}
-		return ComResult.error("非法访问!");
+		return Result.error("非法访问!");
 	}
 
 	@ApiOperation("注册操作")
 	@PostMapping("/register")
-	public ComResult register(@RequestBody LoginInfo loginInfo){
-		String code = (String) LocalCatch.get(loginInfo.getTimeStamp());
+	public Result register(@RequestBody LoginInfo loginInfo){
+		String code = (String) LocalCache.get(loginInfo.getTimeStamp());
 		if (loginInfo.getCode().equals(code)){
 			return loginService.register(loginInfo);
 		}else{
-			return ComResult.error("验证码错误");
+			return Result.error("验证码错误");
 		}
 	}
 }

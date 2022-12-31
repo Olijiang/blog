@@ -1,12 +1,11 @@
 
 import { createStore } from "vuex";
-import API from "../utils/API";
-// import router from "@/router";
-// 创建一个新的 store 实例
+import API from '../utils/API'
 const store = createStore({
   state() {
     return {
       albums: [],
+      token:'',
       author: undefined,
       visitAuthor: undefined,
       editDialog: false, //控制文章编辑窗口
@@ -23,16 +22,13 @@ const store = createStore({
   },
   mutations: {
     login(state, author) {
-      if (state.author != undefined)
-        author.password = state.author.password
+      state.token = author.password
       state.author = author
       state.isLogin = true
     },
     logout(state) {
       state.isLogin = false
       state.author = undefined
-      state.visitAuthor = undefined
-      state.article = {}
     },
     setVisitAuthor(state, author) {
       state.visitAuthor = author

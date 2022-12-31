@@ -20,8 +20,12 @@
                             <el-image class="img" fir="cover" :src=article.img alt="img" @click="articleDeail" />
                         </div>
                         <div :class="{ content_r: (article.index % 2 == 0), content_l: (article.index % 2 != 0) }">
-                            <h3 @click="articleDeail">{{ article.title }}</h3>
+                            <h3 @click="articleDeail" >{{ article.title }} </h3>
                             <span style="font-size: 80%;user-select: none;">
+                                <template v-if="isAuthor">
+                                    <el-tag v-if="article.isPublic==1" type="success">公开</el-tag>
+                                    <el-tag v-else type="danger">私密</el-tag>
+                                </template>
                                 分类: <span style="color: #d63a3a;">{{ article.category }}</span> |
 
                                 标签:
@@ -68,6 +72,10 @@ export default {
             this.$router.push({
                 path: "/ArticleDetail/" + this.article.id
             })
+        },
+        isAuthor() {
+            // 登录并且当前访问的authorId 等于登录 Id
+            return (this.$store.state.isLogin && this.authorId == this.$store.state.author.username)
         }
     },
     computed: {
@@ -197,7 +205,7 @@ h3 {
     cursor: pointer;
     height: 25px;
     line-height: 1.2;
-    margin: 10px 5px 10px 0;
+    margin: 10px 10px;
     font-size: 20px;
     overflow: hidden;
     transition: all 0.5s ease-in-out;

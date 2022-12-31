@@ -3,6 +3,9 @@ package blog.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -22,6 +25,9 @@ import java.io.Serializable;
  * @since 2022-11-18
  */
 @ApiModel(value = "Image对象", description = "")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Image implements Serializable {
 
     @TableId(value = "id", type = IdType.AUTO)
@@ -35,50 +41,5 @@ public class Image implements Serializable {
 
     private String originalImg;
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-    public String getAuthorId() {
-        return authorId;
-    }
-
-    public void setAuthorId(String authorId) {
-        this.authorId = authorId;
-    }
-    public Integer getAlbumId() {
-        return albumId;
-    }
-
-    public void setAlbumId(Integer albumId) {
-        this.albumId = albumId;
-    }
-    public String getSimplifyImg() {
-        return simplifyImg;
-    }
-
-    public void setSimplifyImg(String simplifyImg) {
-        this.simplifyImg = simplifyImg;
-    }
-    public String getOriginalImg() {
-        return originalImg;
-    }
-
-    public void setOriginalImg(String originnalImg) {
-        this.originalImg = originnalImg;
-    }
-
-    @Override
-    public String toString() {
-        return "Image{" +
-            "id=" + id +
-            ", authorId=" + authorId +
-            ", albumName=" + albumId +
-            ", simplifyImg=" + simplifyImg +
-            ", originalImg=" + originalImg +
-        "}";
-    }
+    private int isPublic;
 }

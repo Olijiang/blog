@@ -1,6 +1,6 @@
 package blog.service;
 
-import blog.config.LocalCatch;
+import blog.config.LocalCache;
 import blog.entity.Tag;
 import blog.mapper.TagMapper;
 import com.alibaba.fastjson.JSONObject;
@@ -32,7 +32,7 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag>{
 		json.put("tags", tags);
 		tag.setTags(json.toJSONString());
 		tagMapper.updateById(tag);
-		LocalCatch.put("tags"+authorId,tags);
+		LocalCache.put("tags"+authorId,tags);
 		log.info(authorId+"：更新tags");
 	}
 }

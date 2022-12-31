@@ -18,4 +18,5 @@ public class ArticleDTO {
 	private String content;
 	private String category;
 	private String[] tag;
+	private int isPublic;
 }

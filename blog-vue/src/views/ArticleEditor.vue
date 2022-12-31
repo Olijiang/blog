@@ -330,7 +330,8 @@ export default {
     },
     computed: {
         htmlContent() {
-            return markdownToHtml(this.article.content)
+            if(this.article!=undefined);
+                return markdownToHtml(this.article.content)
         },
         editDialog: {
             get() {

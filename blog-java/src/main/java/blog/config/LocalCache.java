@@ -14,13 +14,20 @@ import java.util.concurrent.TimeUnit;
  * @date 2022/11/6 16:50
  */
 @Component
-public class LocalCatch {
-	private static final ExpiringMap<String, Object> map = ExpiringMap.builder().expiration(3600, TimeUnit.SECONDS)
+public class LocalCache {
+	private static final ExpiringMap<String, Object> map = ExpiringMap.builder()
+			.variableExpiration()
+			.expiration(3600, TimeUnit.SECONDS)
 			.expirationPolicy(ExpirationPolicy.ACCESSED)
+			.maxSize(500)
 			.build();
 
 	public static void put(String key, Object value){
 		map.put(key, value);
+	}
+
+	public static void put(String key, Object value,long expire){
+		map.put(key, value, expire, TimeUnit.SECONDS);
 	}
 
 	public static Object get(String key){
@@ -29,7 +36,6 @@ public class LocalCatch {
 
 	public static void remove(String key){
 		map.remove(key);
-
 	}
 
 	public static void removeByPre(String pre) {

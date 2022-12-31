@@ -168,7 +168,10 @@ export default {
         }
     },
     computed: {
-
+        isAuthor() {
+            // 登录并且当前访问的authorId 等于登录 Id
+            return (this.$store.state.isLogin && this.authorId == this.$store.state.author.username)
+        }
     },
     watch: {
         lastTag: {
@@ -195,7 +198,8 @@ export default {
     },
     mounted() {
         let data = { "ArticleId": this.articleId }
-        API.get("init/getArticle", data)
+        let api = (this.isAuthor)?("article/getArticle"):("init/getPublicArticle")
+        API.get(api, data)
             .then(res => {
                 this.article = res.data
                 this.article.img = this.baseUrl + this.article.img
@@ -213,7 +217,6 @@ export default {
                                 window.addEventListener("scroll", this.detecator)
                             }, 200);
                         }
-
                     })
             })
 
@@ -307,12 +310,6 @@ export default {
             box-shadow: 0 0 10px rgb(200, 200, 200);
             transition: all 0.5s;
         }
-    }
-
-    ::-webkit-scrollbar {
-        width: 4px;
-        /*高宽分别对应横竖·滚动条的尺寸*/
-        height: 4px;
     }
 }
 

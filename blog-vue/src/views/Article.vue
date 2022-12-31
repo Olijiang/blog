@@ -3,15 +3,15 @@
         <div class="headtool">
             <div>
                 <div style="width: 200px;display: inline-block;opacity: 0.5;">
-                    <el-input v-model="query" />
+                    <el-input v-model="queryWord" />
                 </div>
                 <div style="margin-left: 20px;display: inline-block;opacity: 0.5;">
                     <el-button color="#626aef" @click="queryHandler">查找</el-button>
                 </div>
             </div>
 
-            <div style="margin-left: 20px;opacity: 0.7;" v-if="showFlag">
-                <el-button color="#ffae19" @click="addHandler">写文章</el-button>
+            <div style="margin-left: 20px;opacity: 0.7;" v-if="isAuthor">
+                <el-button color="#ffae19" @click="addArticle">写文章</el-button>
             </div>
         </div>
         <el-row>
@@ -37,13 +37,17 @@
                                     <span style="color: #00c6a5;"> </span>
                                 </span>
                             </div>
+                            <template v-if="isAuthor" >
+                                    <el-tag v-if="article.isPublic==1" type="success" style="opacity:0.8">公开</el-tag>
+                                    <el-tag v-else type="danger" style="opacity:0.8">私密</el-tag>
+                            </template>
                         </div>
                         <div class="but">
-                            <div class="buttom" v-if="showFlag">
-                                <el-button type="primary" @click="editHandler(article.id)">编辑</el-button>
+                            <div class="buttom" v-if="isAuthor">
+                                <el-button type="primary" @click="editArticle(article.id)">编辑</el-button>
                             </div>
-                            <div class="buttom" v-if="showFlag">
-                                <el-button type="danger" @click="deleteHandler(article.id)">删除</el-button>
+                            <div class="buttom" v-if="isAuthor">
+                                <el-button type="danger" @click="deleteArticle(article.id)">删除</el-button>
                             </div>
                         </div>
                     </div>
@@ -70,9 +74,10 @@ export default {
         return {
             endmsg: '下拉加载更多',
             editFlag: false,
-            query: "",
+            queryWord: "",
             articleList: [],
             queryData: {
+                queryWord: "",
                 authorId: "",
                 startPage: 0,
                 pageSize: 12
@@ -82,20 +87,38 @@ export default {
         }
     },
     methods: {
-
         queryHandler() {
-
+            let api = (this.isAuthor)?("article/query"):("init/getArticles")
+            this.queryData.queryWord = this.queryWord
+            this.queryData.startPage = 0
+            this.queryData.pageSize = 12
+            this.articleList = []
+            API.get(api, this.queryData)
+                .then(res => {
+                    res.data.forEach(element => {
+                        element.img = this.baseUrl + element.img
+                        element.tag = JSON.parse(element.tag).tags
+                        element.digest = element.digest.replace(/#*.*#/g, '').replace(/[^a-z0-9\u4e00-\u9fa5]/, '').substring(0, 200) // 除去标题部分，截取200个字用来显示
+                        element.show = true
+                        this.articleList.push(element)
+                    });
+                    this.queryData.startPage = this.queryData.startPage + 16
+                    if (res.data.length < this.queryData.pageSize) {
+                        this.endmsg = "没有更多了..."
+                        window.removeEventListener('scroll', this.handleScroll)
+                    }
+                })
         },
-        addHandler() {
+        addArticle() {
             //清除arcticle
             this.$store.commit("clearArticle")
             this.editDialog = true
             this.editFlag = false
         },
-        editHandler(aricleId) {
+        editArticle(articleId) {
             // 文章信息
-            let data = { "ArticleId": aricleId }
-            API.get('init/getArticle', data)
+            let data = { "articleId": articleId }
+            API.get('article/getArticle', data)
                 .then(res => {
                     if (res.code == 200) {
                         res.data.img = this.baseUrl + res.data.img
@@ -107,7 +130,7 @@ export default {
                     }
                 })
         },
-        deleteHandler(articleId) {
+        deleteArticle(articleId) {
             ElMessageBox.confirm('确认删除?', '提示框',
                 {
                     distinguishCancelAndClose: true,
@@ -159,7 +182,8 @@ export default {
                 let scrollHeight = document.documentElement.scrollHeight;//内容高度
                 if (clientHeight + scrollTop - scrollHeight > -10) {
                     this.endmsg = "正在加载..."
-                    API.get('init/getArticles', this.queryData)
+                    let api = (this.isAuthor)?("article/getArticles"):("init/getPublicArticles")
+                    API.get(api, this.queryData)
                         .then(res => {
                             if (res.code == 200) {
                                 // console.log(res.data);
@@ -194,12 +218,9 @@ export default {
                 this.$store.state.editDialog = value
             }
         },
-        showFlag() {
+        isAuthor() {
             // 登录并且当前访问的authorId 等于登录 Id
-            if (this.$store.state.isLogin && this.authorId == this.$store.state.author.username)
-                return true
-            else
-                return false
+            return (this.$store.state.isLogin && this.authorId == this.$store.state.author.username)
         }
     },
     watch: {
@@ -209,7 +230,8 @@ export default {
         window.addEventListener('scroll', this.handleScroll)
         // 获取文章
         this.queryData.authorId = this.authorId
-        API.get('init/getArticles', this.queryData)
+        let api = (this.isAuthor)?("article/getArticles"):("init/getPublicArticles")
+        API.get(api, this.queryData)
             .then(res => {
                 res.data.forEach(element => {
                     element.img = this.baseUrl + element.img
@@ -233,6 +255,7 @@ export default {
                     this.tags = ['默认']
                 }
             })
+
         API.get('init/getCategories', data)
             .then(res => {
                 this.categories = res.data
@@ -258,7 +281,8 @@ export default {
 
 .tagStyle {
     color: #ffffff;
-    font-size: 90%
+    font-size: 90%;
+    margin-bottom: 5px;
 }
 
 .endmsg {

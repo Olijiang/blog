@@ -1,5 +1,6 @@
 import blog.blogApplication;
 import blog.config.PathConfig;
+import blog.entity.Article;
 import blog.entity.Image;
 import blog.mapper.AlbumMapper;
 import blog.mapper.ImageMapper;
@@ -38,6 +39,12 @@ public class demo {
 		wrapper.eq("album_id",albumMapper.getIdByName(authorId,authorName));
 		List<Image> images = imageMapper.selectList(wrapper);
 		System.out.println(images);
+	}
+
+	@Test
+	public void aa(){
+		Article article =  articleService.getArticle(4);
+		System.out.println(article);
 	}
 
 

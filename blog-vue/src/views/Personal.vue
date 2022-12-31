@@ -115,6 +115,8 @@
 <script>
 
 import API from '../utils/API';
+import { VueCropper } from 'vue-cropper'
+
 export default {
 
     components: {
@@ -251,7 +253,7 @@ export default {
             let reader = new FileReader()
             reader.readAsDataURL(files[0])
             reader.onload = async e => {
-                this.author.coverImg = await this.dealImage(e.target.result, 1000)
+                this.author.img = await this.dealImage(e.target.result, 1000)
             }
         },
         submit() {
@@ -453,16 +455,6 @@ export default {
             border: 1px solid rgb(227, 131, 6);
             border-radius: 5px;
         }
-    }
-
-    ::-webkit-scrollbar {
-        width: 5px !important;
-        /*高宽分别对应横竖·滚动条的尺寸*/
-        height: 5px !important;
-    }
-
-    ::-webkit-scrollbar-track {
-        -webkit-box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.497);
     }
 }
 

@@ -1,1 +1,0 @@
-import{_ as e,o,f as t}from"./index.de08f477.js";const n={components:{},props:{},data(){return{}},methods:{},computed:{},watch:{},mounted(){}};function r(s,c,a,p,d,_){return o(),t("div")}const f=e(n,[["render",r]]);export{f as default};

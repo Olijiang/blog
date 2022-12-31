@@ -25,4 +25,6 @@ public class Album {
 	private String albumName;
 
 	private String coverImg;
+
+	private int isPublic;
 }

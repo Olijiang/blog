@@ -1,15 +1,16 @@
 package blog.controller;
 
 
-import blog.config.ComResult;
+import blog.config.Result;
+import blog.entity.Article;
 import blog.entity.ArticleDTO;
-import blog.mapper.ArticleMapper;
 import blog.service.ArticleServiceImpl;
-import blog.utils.JwtUtil;
+import blog.utils.TokenUtil;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -26,30 +27,41 @@ public class ArticleController {
 
 	@Resource
 	private ArticleServiceImpl articleService;
-	@Resource
-	private ArticleMapper articleMapper;
+
+	@ApiOperation("获取文章列表")
+	@GetMapping("/getArticles")
+	public Result getArticles(String queryWord, int startPage, int pageSize, @RequestHeader("token") String token) {
+		String authorId = Objects.requireNonNull(TokenUtil.getUserFromToken(token)).getUsername();
+		List<Article> articles = articleService.getAllArticles(authorId,queryWord,startPage,pageSize);
+		return Result.success("获取文章成功",articles);
+	}
+
+	@ApiOperation("获取单片文章")
+	@GetMapping("/getArticle")
+	public Result getArticle(Integer articleId) {
+		Article article = articleService.getArticle(articleId);
+		if (article==null) return Result.error("文章不存在");
+		return Result.success("获取文章成功",article);
+	}
 
 	@ApiOperation("添加文章")
 	@PostMapping("/add")
-	public ComResult addArticle(@RequestBody ArticleDTO articleDTO,@RequestHeader("token") String token) {
-		String authorId = Objects.requireNonNull(JwtUtil.getUserFromToken(token)).getUsername();
+	public Result addArticle(@RequestBody ArticleDTO articleDTO, @RequestHeader("token") String token) {
+		String authorId = Objects.requireNonNull(TokenUtil.getUserFromToken(token)).getUsername();
 		return articleService.addArticle(articleDTO, authorId);
 	}
 
 	@ApiOperation("更新文章")
 	@PostMapping("/update")
-	public ComResult updateArticle(@RequestBody ArticleDTO articleDTO,@RequestHeader("token") String token) {
-		String authorId = Objects.requireNonNull(JwtUtil.getUserFromToken(token)).getUsername();
+	public Result updateArticle(@RequestBody ArticleDTO articleDTO, @RequestHeader("token") String token) {
+		String authorId = Objects.requireNonNull(TokenUtil.getUserFromToken(token)).getUsername();
 		return articleService.updateArticle(articleDTO,authorId);
 	}
 
 	@ApiOperation("删除文章")
 	@GetMapping("/delete")
-	public ComResult deleteArticle( Integer articleId,@RequestHeader("token") String token) {
-		String authorId = Objects.requireNonNull(JwtUtil.getUserFromToken(token)).getUsername();
+	public Result deleteArticle(Integer articleId, @RequestHeader("token") String token) {
+		String authorId = Objects.requireNonNull(TokenUtil.getUserFromToken(token)).getUsername();
 		return articleService.deleteArticle(articleId,authorId);
 	}
-
-
-
 }

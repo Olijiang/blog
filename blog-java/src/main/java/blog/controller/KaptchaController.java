@@ -1,16 +1,18 @@
 package blog.controller;
 
-import blog.config.ComResult;
-import blog.config.LocalCatch;
+import blog.config.Result;
+import blog.config.LocalCache;
 import com.google.code.kaptcha.impl.DefaultKaptcha;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -28,20 +30,23 @@ public class KaptchaController {
 
 	@ApiOperation("获取验证码")
 	@GetMapping("/getCode")
-	public ComResult defaultKaptcha(String timeStamp) {
+	public Result defaultKaptcha(HttpServletRequest request) {
 		ByteArrayOutputStream imgOutputStream = new ByteArrayOutputStream();
 		try {
-			//生产验证码字符串并保存到session中
+			// ip 的 md5 作为验证码的识别标志
+			String ip =  request.getRemoteAddr();
+			String ipMD5 = DigestUtils.md5DigestAsHex(ip.getBytes()).substring(5,20);
 			String verifyCode = captchaProducer.createText();
-			LocalCatch.put(timeStamp,verifyCode);
+			// 记入缓存，60s 后清除
+			LocalCache.put(ipMD5,verifyCode,60000L);
 			java.awt.image.BufferedImage challenge = captchaProducer.createImage(verifyCode);
 			ImageIO.write(challenge, "jpg", imgOutputStream);
 		} catch (Exception e) {
 			log.warn("验证码获取失败"+e);
-			return ComResult.error("验证码获取失败");
+			return Result.error("验证码获取失败");
 		}
 		byte[] captchaOutputStream = imgOutputStream.toByteArray();
 
-		return ComResult.success("验证码获取成功",captchaOutputStream);
+		return Result.success("验证码获取成功",captchaOutputStream);
 	}
 }

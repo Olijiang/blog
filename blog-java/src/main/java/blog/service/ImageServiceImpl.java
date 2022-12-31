@@ -1,7 +1,7 @@
 package blog.service;
 
-import blog.config.ComResult;
-import blog.config.LocalCatch;
+import blog.config.Result;
+import blog.config.LocalCache;
 import blog.config.PathConfig;
 import blog.entity.Image;
 import blog.entity.ImageDTO;
@@ -37,7 +37,7 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, Image> {
 	private AlbumMapper albumMapper;
 
 
-	public ComResult addImage(ImageDTO imageDTO, String authorId) {
+	public Result addImage(ImageDTO imageDTO, String authorId) {
 		Image image = new Image();
 		// 设置分类ID
 		image.setAlbumId(getAlbumIdByName(authorId, imageDTO.getAlbumName()));
@@ -48,38 +48,47 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, Image> {
 		String date = dtf.format(LocalDateTime.now());
 		String path1 = date + "_" + authorId;
 		String path = saveImg(imageDTO.getSimplifyImg(),path1);
-		if (path==null) return ComResult.error("图片保存失败");
+		if (path==null) return Result.error("图片保存失败");
 		image.setSimplifyImg(path);
 		// 原图
 		String path2 = date + "R_" + authorId;
 		path = saveImg(imageDTO.getOriginalImg(),path2);
-		if (path==null) return ComResult.error("图片保存失败");
+		if (path==null) return Result.error("图片保存失败");
 		image.setOriginalImg(path);
-		LocalCatch.removeByPre("imageList" + authorId);
+		LocalCache.removeByPre("imageList" + authorId);
 		imageMapper.insert(image);
 		log.info("添加图片成功："+image);
-		return ComResult.success("图片保存成功");
+		return Result.success("图片保存成功");
 	}
-
-	public ComResult getImages(String authorId, int startPage, int pageSize) {
+	public List<ImageDTO> getImages(String authorId, int startPage, int pageSize) {
 		List<ImageDTO> images;
 		String key = "imageList" + authorId + "-" + startPage + "-" + (startPage+pageSize);
-		if ((images = (List<ImageDTO>) LocalCatch.get(key)) == null) {
-			images = imageMapper.getImages(authorId,startPage,pageSize);
-			if (images==null) return ComResult.error("获取图片列表失败，用户不存在");
-			LocalCatch.put(key, images);
-			return ComResult.success("获取图片列表成功", images);
+		if ((images = (List<ImageDTO>) LocalCache.get(key)) == null) {
+			images = imageMapper.getImages(authorId, startPage, pageSize);
+			LocalCache.put(key, images);
+			return images;
 		}
-		return ComResult.success("获取图片列表成功", images);
+		return images;
 	}
 
-	public ComResult deleteImage(Integer[] idSet, String authorId) {
+	public List<ImageDTO> getPublicImages(String authorId, int startPage, int pageSize) {
+		List<ImageDTO> images;
+		String key = "imageList" + authorId + "-public-" + startPage + "-" + (startPage+pageSize);
+		if ((images = (List<ImageDTO>) LocalCache.get(key)) == null) {
+			images = imageMapper.getPublicImages(authorId, startPage, pageSize);
+			LocalCache.put(key, images);
+			return images;
+		}
+		return images;
+	}
+
+	public Result deleteImage(Integer[] idSet, String authorId) {
 		Image image;
 		for (Integer id : idSet) {
 			// 查图片验证作者身份
 			image = getImageById(id);
 			if (!image.getAuthorId().equals(authorId))
-				return ComResult.error("非法操作");
+				return Result.error("非法操作");
 			try {
 				// 删数据库记录
 				imageMapper.deleteById(id);
@@ -88,28 +97,24 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, Image> {
 				myUtil.deleteFile(image.getOriginalImg());
 				log.info("删除图片成功："+image);
 			}catch (Exception e){
-				return ComResult.error("删除失败");
+				return Result.error("删除失败");
 			}
 		}
 		// 清除缓存
-		LocalCatch.removeByPre("imageList" + authorId);
-		return ComResult.success("删除成功");
+		LocalCache.removeByPre("imageList" + authorId);
+		return Result.success("删除成功");
 	}
 
-	private Image getImageById(Integer id) {
-		return imageMapper.selectById(id);
-	}
 
-	public ComResult getImagesByAlbum(String authorId, String albumName, int startPage, int pageSize) {
+	public List<ImageDTO> getImagesByPublicAlbum(String authorId, String albumName, int startPage, int pageSize) {
 		List<ImageDTO> images;
 		String key = "imageList" + authorId + "-" + albumName + startPage + "-" + (startPage+pageSize);
-		if ((images = (List<ImageDTO>) LocalCatch.get(key)) == null) {
-			images = imageMapper.getImagesByAlbum(authorId,albumName,startPage,pageSize);
-			if (images==null) return ComResult.error("获取相册图片列表失败，用户不存在");
-			LocalCatch.put(key, images);
-			return ComResult.success("获取相册图片列表成功", images);
+		if ((images = (List<ImageDTO>) LocalCache.get(key)) == null) {
+			images = imageMapper.getImagesByPublicAlbum(authorId,albumName,startPage,pageSize);
+			LocalCache.put(key, images);
+			return images;
 		}
-		return ComResult.success("获取相册图片列表成功", images);
+		return images;
 	}
 
 
@@ -142,4 +147,10 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, Image> {
 	private Integer getAlbumIdByName(String authorId ,String albumName){
 		return albumMapper.getIdByName(authorId, albumName);
 	}
+
+	private Image getImageById(Integer id) {
+		return imageMapper.selectById(id);
+	}
+
+
 }
