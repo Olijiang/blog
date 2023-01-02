@@ -73,13 +73,12 @@ export default {
                 path: "/ArticleDetail/" + this.article.id
             })
         },
-        isAuthor() {
-            // 登录并且当前访问的authorId 等于登录 Id
-            return (this.$store.state.isLogin && this.authorId == this.$store.state.author.username)
-        }
     },
     computed: {
-
+        isAuthor() {
+            // 登录并且当前访问的authorId 等于登录 Id
+            return this.$store.getters.isAuthor
+        }
     },
     watch: {
 

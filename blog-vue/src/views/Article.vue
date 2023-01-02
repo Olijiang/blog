@@ -1,17 +1,17 @@
 <template>
     <div>
         <div class="headtool">
-            <div>
+            <div class="tbt">
                 <div style="width: 200px;display: inline-block;opacity: 0.5;">
                     <el-input v-model="queryWord" />
                 </div>
                 <div style="margin-left: 20px;display: inline-block;opacity: 0.5;">
-                    <el-button color="#626aef" @click="queryHandler">查找</el-button>
+                    <el-button color="#626aef" @click="queryHandler" >查找</el-button>
                 </div>
             </div>
 
-            <div style="margin-left: 20px;opacity: 0.7;" v-if="isAuthor">
-                <el-button color="#ffae19" @click="addArticle">写文章</el-button>
+            <div style="margin-left: 20px;opacity: 0.7;" v-if="isAuthor" >
+                <el-button color="#ffae19" @click="addArticle" class="tbt">写文章</el-button>
             </div>
         </div>
         <el-row>
@@ -88,7 +88,7 @@ export default {
     },
     methods: {
         queryHandler() {
-            let api = (this.isAuthor)?("article/query"):("init/getArticles")
+            let api = (this.isAuthor)?("article/getArticles"):("init/getArticles")
             this.queryData.queryWord = this.queryWord
             this.queryData.startPage = 0
             this.queryData.pageSize = 12
@@ -220,7 +220,7 @@ export default {
         },
         isAuthor() {
             // 登录并且当前访问的authorId 等于登录 Id
-            return (this.$store.state.isLogin && this.authorId == this.$store.state.author.username)
+            return this.$store.getters.isAuthor
         }
     },
     watch: {
@@ -272,6 +272,13 @@ export default {
 </script>
 
 <style lang='less' scoped>
+.tbt{
+    opacity: 0.3;
+    transition: 0.5s;
+    &:hover{
+        opacity: 1;
+    }
+}
 .headtool {
     display: flex;
     justify-content: space-between;

@@ -1,11 +1,10 @@
 package blog.service;
 
-import blog.config.Result;
 import blog.config.LocalCache;
 import blog.config.PathConfig;
+import blog.config.Result;
 import blog.entity.Image;
 import blog.entity.ImageDTO;
-import blog.mapper.AlbumMapper;
 import blog.mapper.ImageMapper;
 import blog.utils.myUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -34,13 +33,15 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, Image> {
 	@Resource
 	private ImageMapper imageMapper;
 	@Resource
-	private AlbumMapper albumMapper;
+	private AlbumServiceImpl albumService;
 
 
 	public Result addImage(ImageDTO imageDTO, String authorId) {
 		Image image = new Image();
 		// 设置分类ID
 		image.setAlbumId(getAlbumIdByName(authorId, imageDTO.getAlbumName()));
+		// 图片public等于相册的public
+		image.setIsPublic(getIsPublicByAlbum(authorId, imageDTO.getAlbumName()));
 		// 作者ID
 		image.setAuthorId(authorId);
 		// 文件名
@@ -108,15 +109,33 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, Image> {
 
 	public List<ImageDTO> getImagesByPublicAlbum(String authorId, String albumName, int startPage, int pageSize) {
 		List<ImageDTO> images;
-		String key = "imageList" + authorId + "-" + albumName + startPage + "-" + (startPage+pageSize);
+		String key = "imageList" + authorId + "pub-" + albumName + startPage + "-" + (startPage+pageSize);
 		if ((images = (List<ImageDTO>) LocalCache.get(key)) == null) {
-			images = imageMapper.getImagesByPublicAlbum(authorId,albumName,startPage,pageSize);
+			if (albumName.equals("全部")){
+				images = getPublicImages(authorId,startPage,pageSize);
+			}else {
+				images = imageMapper.getImagesByPublicAlbum(authorId,albumName,startPage,pageSize);
+			}
 			LocalCache.put(key, images);
 			return images;
 		}
 		return images;
 	}
 
+	public List<ImageDTO> getImagesByAlbum(String authorId, String albumName, int startPage, int pageSize) {
+		List<ImageDTO> images;
+		String key = "imageList" + authorId + "-" + albumName + startPage + "-" + (startPage+pageSize);
+		if ((images = (List<ImageDTO>) LocalCache.get(key)) == null) {
+			if (albumName.equals("全部")){
+				images = getImages(authorId,startPage,pageSize);
+			}else {
+				images = imageMapper.getImagesByAlbum(authorId,albumName,startPage,pageSize);
+			}
+			LocalCache.put(key, images);
+			return images;
+		}
+		return images;
+	}
 
 
 	// ----------------->>>>>>>>>>>.  private 方法
@@ -145,12 +164,17 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, Image> {
 
 	// 通过相册名获取相册id
 	private Integer getAlbumIdByName(String authorId ,String albumName){
-		return albumMapper.getIdByName(authorId, albumName);
+		return albumService.getAlbum(authorId, albumName).getId();
+	}
+
+	private Integer getIsPublicByAlbum(String authorId ,String albumName){
+		return albumService.getAlbum(authorId, albumName).getIsPublic();
 	}
 
 	private Image getImageById(Integer id) {
 		return imageMapper.selectById(id);
 	}
+
 
 
 }

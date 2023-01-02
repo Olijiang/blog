@@ -55,13 +55,14 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		return Result.success("获取文章内容成功",article);
 	}
 
-	public List<Article> getPublicArticles(String authorId, int startPage, int pageSize) {
+	public List<Article> getPublicArticles(String authorId, String queryWord,int startPage, int pageSize) {
 		List<Article> articles;
-		String key = "articleList" + authorId + "-public-" + startPage + "-" + (startPage+pageSize);
+		String key = "articleList" + authorId + "-public"+ queryWord + startPage + "-" + (startPage+pageSize);
 		if ((articles = (List<Article>) LocalCache.get(key)) == null) {
 			QueryWrapper<Article> wrapper = new QueryWrapper<Article>()
 					.eq("author_id",authorId)
 					.eq("is_public",1)
+					.like(!queryWord.equals(""),"title",queryWord)
 					.orderByDesc("create_time")
 					.last("limit "+startPage+","+pageSize);
 			articles = articleMapper.selectList(wrapper);
@@ -73,11 +74,12 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 
 	public List<Article> getAllArticles(String authorId, String queryWord, int startPage, int pageSize) {
 		List<Article> articles;
-		String key = "articleList" + authorId + "-All-" + startPage + "-" + (startPage+pageSize);
+		String key = "articleList" + authorId + "-All-" + queryWord + startPage + "-" + (startPage+pageSize);
 		if ((articles = (List<Article>) LocalCache.get(key)) == null) {
 			QueryWrapper<Article> wrapper = new QueryWrapper<Article>()
 					.eq("author_id",authorId)
 					.orderByDesc("create_time")
+					.like(!queryWord.equals(""),"title",queryWord)
 					.last("limit "+startPage+","+pageSize);
 			articles = articleMapper.selectList(wrapper);
 			LocalCache.put(key, articles);
@@ -180,6 +182,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		article.setTag(thisTagJson.toJSONString());
 		// authorId
 		article.setAuthorId(authorId);
+		// public
+		article.setIsPublic(articleDTO.getIsPublic());
 		//digest
 		if (articleDTO.getContent().length()>180){
 			article.setDigest(articleDTO.getContent().substring(0,180)+"...");
@@ -247,6 +251,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>{
 		article.setTag(thisTagJson.toJSONString());
 		// authorId
 		article.setAuthorId(authorId);
+		// public
+		article.setIsPublic(articleDTO.getIsPublic());
 		//digest
 		if (articleDTO.getContent().length()>180){
 			article.setDigest(articleDTO.getContent().substring(0,180)+"...");

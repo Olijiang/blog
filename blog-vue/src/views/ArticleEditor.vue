@@ -70,12 +70,16 @@
                         <!-- <div>
                             <el-button type="primary" @click="saveToScript">保存到草稿</el-button>
                         </div> -->
-                        <div style="margin: 10px 0;">
+                        <!-- <div style="margin: 10px 0;">
                             <el-button type="primary" @click="saveAndIssue">发表</el-button>
                         </div>
                         <div style="margin: 10px 0;">
                             <el-button type="danger" @click="closeAndSaveToScript">关闭</el-button>
-                        </div>
+                        </div> -->
+                        <el-radio-group v-model="article.isPublic">
+                            <el-radio label=0 size="large">设为私密</el-radio>
+                            <el-radio label=1 size="large">设为公开</el-radio>
+                        </el-radio-group>
                     </el-col>
 
                 </el-row>

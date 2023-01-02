@@ -170,7 +170,7 @@ export default {
     computed: {
         isAuthor() {
             // 登录并且当前访问的authorId 等于登录 Id
-            return (this.$store.state.isLogin && this.authorId == this.$store.state.author.username)
+            return (this.$store.state.visitAuthor?.username == this.$store.state.author?.username)
         }
     },
     watch: {
@@ -197,7 +197,7 @@ export default {
         }
     },
     mounted() {
-        let data = { "ArticleId": this.articleId }
+        let data = { "articleId": this.articleId }
         let api = (this.isAuthor)?("article/getArticle"):("init/getPublicArticle")
         API.get(api, data)
             .then(res => {

@@ -3,8 +3,6 @@ package blog.mapper;
 import blog.entity.Album;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
-import java.util.List;
-
 /**
  * @author ZGB
  * @version 1.0
@@ -13,9 +11,4 @@ import java.util.List;
  */
 public interface AlbumMapper extends BaseMapper<Album> {
 
-	List<Album> getAlbums(String authorId);
-
-	Integer getIdByName(String authorId, String albumName);
-
-	String[] getAlbumNames(String authorId);
 }

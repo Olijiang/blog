@@ -103,7 +103,7 @@ export default {
                 let scrollHeight = document.documentElement.scrollHeight;//内容高度
                 if (clientHeight + scrollTop - scrollHeight > -10) {
                     this.endmsg = "正在加载..."
-                    let api = (this.isAuthor)?("image/getImages"):("init/getPublicImages")
+                    let api = (this.isAuthor)?("image/getImagesByAlbum"):("init/getImagesByPublicAlbum")
                     API.get(api, this.queryData)
                         .then(res => {
                             if (res.code == 200) {
@@ -190,6 +190,7 @@ export default {
                                     message: res.message,
                                     type: 'success',
                                 })
+                                this.editFlag = false
                             }
                         })
                 }).catch((action) => {
@@ -228,7 +229,7 @@ export default {
 
         this.queryData.authorId = this.authorId
         this.queryData.albumName = this.albumName
-        let api = (this.isAuthor)?("image/getImages"):("init/getPublicImages")
+        let api = (this.isAuthor)?("image/getImagesByAlbum"):("init/getImagesByPublicAlbum")
         API.get(api, this.queryData)
             .then(res => {
                 if (res.code == 200) {

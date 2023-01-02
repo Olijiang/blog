@@ -1,7 +1,7 @@
 package blog.service;
 
-import blog.config.Result;
 import blog.config.LocalCache;
+import blog.config.Result;
 import blog.entity.Album;
 import blog.entity.Image;
 import blog.mapper.AlbumMapper;
@@ -32,7 +32,7 @@ public class AlbumServiceImpl {
 
 	public Result update(String authorId, Album[] albums) {
 		// 获取 全部 的 id
-		Integer theId = albumMapper.getIdByName(authorId, "全部");
+		Integer theId = getAlbum(authorId, "全部").getId();
 		// 获取当前作者的全部相册
 		List<Album> rawAlbums = getAllAlbums(authorId);
 
@@ -44,6 +44,8 @@ public class AlbumServiceImpl {
 				album.setAuthorId(authorId);
 				String path = myUtil.saveImg(album.getCoverImg(),authorId);
 				album.setCoverImg(path);
+				// 不是 0 就设为公开，以防乱传数据
+				if (album.getIsPublic()!=0) album.setIsPublic(1);
 				albumMapper.insert(album);
 				log.info("新增相册："+album.getAlbumName());
 			}else{
@@ -53,9 +55,11 @@ public class AlbumServiceImpl {
 				if (!album1.getAuthorId().equals(authorId)) return Result.error("非法操作");
 				// 重设 authorId
 				album.setAuthorId(authorId);
+				// 无法对”全部“的企图修改
 				if (album.getId().equals(theId)){
 					album.setAlbumName("全部");
 				}
+				if (album.getIsPublic()!=0) album.setIsPublic(1);
 				if (!album.getCoverImg().equals("")){
 					// 图片修改过, 删除原图片, 写入新图片
 					myUtil.deleteFile(album1.getCoverImg());
@@ -79,7 +83,7 @@ public class AlbumServiceImpl {
 		for (Album album : rawAlbums) {
 			QueryWrapper<Image> wrapper = new QueryWrapper<>();
 			wrapper.eq("author_id",authorId);
-			wrapper.eq("album_id",albumMapper.getIdByName(authorId, album.getAlbumName()));
+			wrapper.eq("album_id",getAlbum(authorId, "全部").getId());
 			List<Image> images = imageMapper.selectList(wrapper);
 			for (Image image : images) {
 				myUtil.deleteFile(image.getOriginalImg());
@@ -100,7 +104,9 @@ public class AlbumServiceImpl {
 		List<Album> albums;
 		String key = "albums" + authorId;
 		if ((albums = (List<Album>) LocalCache.get(key)) == null) {
-			albums = albumMapper.getAlbums(authorId);
+			QueryWrapper<Album> wrapper = new QueryWrapper<Album>()
+					.eq("author_id",authorId);
+			albums = albumMapper.selectList(wrapper);
 			if (albums==null) return new ArrayList<>();
 			LocalCache.put(key, albums);
 			return albums;
@@ -121,5 +127,20 @@ public class AlbumServiceImpl {
 			return albums;
 		}
 		return albums;
+	}
+
+	public Album getAlbum(String authorId, String albumName){
+		Album album;
+		String key = "album" + authorId;
+		if ((album = (Album) LocalCache.get(key))==null){
+			QueryWrapper<Album> wrapper = new QueryWrapper<Album>()
+					.eq("author_id",authorId)
+					.eq("album_name",albumName);
+			album = albumMapper.selectOne(wrapper);
+			if (album==null) return null;
+			LocalCache.put(key,album);
+			return album;
+		}
+		return album;
 	}
 }

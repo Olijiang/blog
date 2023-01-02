@@ -27,11 +27,19 @@ public class ImageController {
 	@Resource
 	private ImageServiceImpl imageService;
 
-	@ApiOperation("获取图片信息")
-	@GetMapping("/getImages")
+	@ApiOperation("获取初始图片")
+	@GetMapping("/getInitImages")
 	public Result getImages(@RequestHeader("token") String token, int startPage, int pageSize) {
 		String authorId = Objects.requireNonNull(TokenUtil.getUserFromToken(token)).getUsername();
-		List<ImageDTO> list = imageService.getImages(authorId,startPage, pageSize);
+		List<ImageDTO> list = imageService.getImages(authorId,0, 8);
+		return Result.success("获取图片成功",list);
+	}
+
+	@ApiOperation("根据相册获取图片")
+	@GetMapping("/getImagesByAlbum")
+	public Result getImagesByAlbum(@RequestHeader("token") String token,String albumName, int startPage, int pageSize) {
+		String authorId = Objects.requireNonNull(TokenUtil.getUserFromToken(token)).getUsername();
+		List<ImageDTO> list = imageService.getImagesByAlbum(authorId, albumName, startPage, pageSize);
 		return Result.success("获取图片成功",list);
 	}
 

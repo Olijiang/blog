@@ -20,15 +20,25 @@ const store = createStore({
       }
     }
   },
+  getters: {
+    isAuthor(state){
+      return (state.isLogin && state.visitAuthor?.username == state.author?.username)
+    },
+  },
   mutations: {
+    
     login(state, author) {
       state.token = author.password
       state.author = author
       state.isLogin = true
     },
     logout(state) {
+      state.token = ""
       state.isLogin = false
       state.author = undefined
+    },
+    clearAuthor(state){
+      state.visitAuthor = undefined
     },
     setVisitAuthor(state, author) {
       state.visitAuthor = author
@@ -37,6 +47,7 @@ const store = createStore({
       state.article = article
       // 解析tag
       state.article.tag = JSON.parse(article.tag).tags
+      state.article.isPublic = String(state.article.isPublic)
       // 请求文章内容
       let data = { "filePath": article.content }
       API.get('init/getContent', data)

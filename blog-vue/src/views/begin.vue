@@ -12,6 +12,9 @@ export default {
 
         }
     },
+    mounted(){
+        this.$store.commit("clearAuthor")
+    }
 }
 
 </script>

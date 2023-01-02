@@ -26,8 +26,8 @@ public class TokenUtil {
 
 
 	private final static String secret = "yg*G_f1#@0.,2Ka1.a123_k)12l1k24i9jda(*sg0..,/'123-oo0949^*63";
-	private static final long expiration = 600000; // 十分钟
-	private static final long refreshGap = 60000; // 刷新正负范围 1分钟
+	private static final long expiration = 1800000; // 30分钟
+	private static final long refreshGap = 180000; // 过期前刷新时间 3分钟
 
 	/**
 	 * @description: 根据用户信息生成token
@@ -94,10 +94,10 @@ public class TokenUtil {
 					.setSigningKey(secret)
 					.parseClaimsJws(token)
 					.getBody();
-			if (Math.abs(claims.getExpiration().getTime() - System.currentTimeMillis()) < refreshGap){
+			if (claims.getExpiration().getTime() - System.currentTimeMillis() < refreshGap){
 				claims.setExpiration(new Date(System.currentTimeMillis()+ expiration));
 				String newToken = generateToken(claims);
-				log.warn("token刷新成功");
+				log.info("token刷新成功");
 				return newToken;
 			}
 			return null;

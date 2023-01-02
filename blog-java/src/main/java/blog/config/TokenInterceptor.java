@@ -76,7 +76,7 @@ public class TokenInterceptor implements HandlerInterceptor {
 			try{
 				response.setCharacterEncoding("UTF-8");
 				response.setContentType("application/json; charset=utf-8");
-				Result res = Result.error(401,"请先登录在访问！");
+				Result res = Result.error(401,"登录信息已失效,请重新登录！");
 				PrintWriter out = response.getWriter();
 				// 返回json信息给前端
 				out.append(JSON.toJSONString(res)).flush();

@@ -2,12 +2,10 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import store from '../store'
 
 const routes = [
-
     {
-        path: '/demo',
-        name: 'demo',
-        component: () => import('../views/AlbumDetail.vue'),
-        props: true
+        path: '/test',
+        name: 'test',
+        component: () => import('../views/test.vue'),
     },
     {
         path: '/',

@@ -34,8 +34,7 @@ instance.interceptors.response.use(
       console.log(response.data.message, response.data);
       if(response.headers.token!=undefined)
         store.state.token = response.headers.token
-    }
-    if (response.data.code != 200 && response.data.message!=undefined) {
+    }else{
       switch (response.data.code) {
         case 401://token 过期
           ElMessage({
@@ -44,14 +43,9 @@ instance.interceptors.response.use(
             type: 'warning',
           })
           store.commit("logout")
-          router.replace({ path: "/" + 2020 })
+          router.replace({ path: "/"})
           break;
         default:
-          ElMessage({
-            showClose: true,
-            message: response.data.message,
-            type: 'warning',
-          })
           break;
       }
     }
@@ -63,9 +57,10 @@ instance.interceptors.response.use(
     console.log(error);
     ElMessage({
       showClose: true,
-      message: error.message,
+      message: "服务器未连接",
       type: 'warning',
     })
+    router.replace({ path: "/"})
     return Promise.reject(error);
   }
 );

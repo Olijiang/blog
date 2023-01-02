@@ -5,10 +5,10 @@
             <el-col class="container">
                 <el-row style="display: flex; justify-content: space-between">
                     <div style="margin: 0 0 1% 2.5%; height: 30px; opacity: 0.7">
-                        <el-button v-if="isAuthor" type="primary" @click="uploadDialog = true">上传</el-button>
+                        <el-button v-if="isAuthor" type="primary" @click="uploadDialog = true" class="tbt">上传</el-button>
                     </div>
                     <div style="margin: 0 2.5% 1% 0; height: 30px; opacity: 0.7">
-                        <el-button v-if="isAuthor" type="warning" @click="editAlbumDialog = true">管理相册</el-button>
+                        <el-button v-if="isAuthor" type="warning" @click="editAlbumDialog = true" class="tbt">管理相册</el-button>
                     </div>
                 </el-row>
                 <el-row class="header">
@@ -99,7 +99,11 @@
                                         :disabled="item.albumName == '全部'">
                                     </el-input>
                                 </el-form-item>
-                            </el-form>
+                                <el-radio-group v-model="albumsA[index].isPublic">
+                                    <el-radio label=0 size="large">设为私密</el-radio>
+                                    <el-radio label=1 size="large">设为公开</el-radio>
+                                </el-radio-group>
+                            </el-form>  
                         </div>
                         <div style="display: inline-block; width: 150px; margin-top: 10px">
                             <el-upload ref="editAlbumUploadRef" class="upload-demo" accept=".png, .jpg"
@@ -159,7 +163,7 @@ export default {
             previewDialog: false,
             dialogImageUrl: "",
             uploadDialog: false,
-
+            // 相册管理
             editAlbumDialog: false,
             rules: {
                 albumName: { required: true, message: "请输入相册名", trigger: "blur" },
@@ -380,6 +384,7 @@ export default {
                 a.albumName = e.albumName;
                 if (!e.imgChange) a.coverImg = "";
                 else a.coverImg = e.coverImg;
+                a.isPublic = e.isPublic
                 data.push(a);
             });
             this.OKFlag = true;
@@ -467,8 +472,10 @@ export default {
             this.albums.forEach((e) => {
                 // 深度复制一份
                 e.imgChange = false;
+                e.isPublic = String(e.isPublic)
                 this.albumsA.push(JSON.parse(JSON.stringify(e)));
             });
+            console.log(this.albumsA);
         },
         initAlbums() {
             // 获取相册信息
@@ -502,7 +509,7 @@ export default {
             };
             this.originalImg = [];
             this.simplifyImg = [];
-            let api = (this.isAuthor)?("image/getImages"):("init/getPublicImages")
+            let api = (this.isAuthor)?("image/getInitImages"):("init/getInitPublicImages")
             API.get(api, data).then((res) => {
                 if (res.code == 200) {
                     res.data.forEach((e) => {
@@ -517,11 +524,8 @@ export default {
     computed: {
         isAuthor() {
             // 登录并且当前访问的authorId 等于登录 Id
-            return (
-                this.$store.state.isLogin &&
-                this.authorId == this.$store.state.author.username
-            );
-        },
+            return this.$store.getters.isAuthor
+        }
     },
     watch: {},
     mounted() {
@@ -533,7 +537,13 @@ export default {
 
 <style lang="less" scoped>
 @transition: all 0.5s ease-in-out;
-
+.tbt{
+    opacity: 0.3;
+    transition: @transition;
+    &:hover{
+        opacity: 1;
+    }
+}
 .container {
     max-width: 96%;
     flex: 0 0 96%;
@@ -605,7 +615,6 @@ export default {
         display: block;
         font-size: 20px;
         margin-top: 20%;
-        margin-left: 50px;
         transition: @transition;
     }
 

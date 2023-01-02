@@ -65,17 +65,17 @@ public class InitController {
 		return articleService.getTagsById(authorId);
 	}
 
-	@ApiOperation("初始化时获取公开文章列表信息")
+	@ApiOperation("获取公开文章列表信息")
 	@GetMapping("/getPublicArticles")
-	public Result getPublicArticles(String authorId, int startPage, int pageSize){
-		List<Article> articles = articleService.getPublicArticles(authorId, startPage, pageSize);
+	public Result getPublicArticles(String authorId, String queryWord, int startPage, int pageSize){
+		List<Article> articles = articleService.getPublicArticles(authorId, queryWord, startPage, pageSize);
 		return Result.success("获取文章列表成功", articles);
 	}
 
 	@ApiOperation("根据文章id获取公开文章信息")
 	@GetMapping("/getPublicArticle")
-	public Result getPublicArticle(Integer ArticleId){
-		Article article = articleService.getPublicArticle(ArticleId);
+	public Result getPublicArticle(Integer articleId){
+		Article article = articleService.getPublicArticle(articleId);
 		return Result.success("获取文章成功",article);
 	}
 
@@ -86,19 +86,15 @@ public class InitController {
 	}
 
 	@ApiOperation("获取公开图片")
-	@GetMapping("/getPublicImages")
-	public Result getPublicImages(String authorId, int startPage, int pageSize) {
-		List<ImageDTO> images = imageService.getPublicImages(authorId, startPage, pageSize);
+	@GetMapping("/getInitPublicImages")
+	public Result getPublicImages(String authorId) {
+		List<ImageDTO> images = imageService.getPublicImages(authorId, 0, 8);
 		return Result.success("获取图片成功", images);
 	}
 
 	@ApiOperation("根据公开相册获取图片")
 	@GetMapping("/getImagesByPublicAlbum")
 	public Result getImagesByPublicAlbum(String authorId, String albumName, int startPage, int pageSize) {
-		if (albumName.equals("全部")){
-			List<ImageDTO> images = imageService.getPublicImages(authorId, startPage, pageSize);
-			return Result.success("获取图片成功", images);
-		}
 		List<ImageDTO> images = imageService.getImagesByPublicAlbum(authorId, albumName, startPage, pageSize);
 		return Result.success("获取图片成功", images);
 	}

@@ -101,7 +101,7 @@ export default {
         },
         isAuthor() {
             // 登录并且当前访问的authorId 等于登录 Id
-            return (this.$store.state.isLogin && this.authorId == this.$store.state.author.username)
+            return this.$store.getters.isAuthor
         }
     },
     watch: {
