@@ -11,12 +11,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author ZGB
@@ -130,4 +130,54 @@ public class myUtil {
 			log.warn("删除文件失败 "+ filePath + e);
 		}
 	}
+
+
+	//遍历对象属性和方法
+	public static Object dispose(Object object){
+		Field[] field = object.getClass().getDeclaredFields(); // 获取实体类的所有属性，返回Field数组
+		try {
+			for (int j = 0; j < field.length; j++) { // 遍历所有属性
+				String name = field[j].getName(); // 获取属性的名字
+				name = name.substring(0, 1).toUpperCase() + name.substring(1); // 将属性的首字符大写，方便构造get，set方法
+				String type = field[j].getGenericType().toString(); // 获取属性的类型
+				if (type.equals("class java.lang.String")) { // 如果type是类类型，则前面包含"class "，后面跟类名
+					Method m = object.getClass().getMethod("get" + name);
+					String value = (String) m.invoke(object); // 调用getter方法获取属性值
+
+//					m = object.getClass().getMethod("set"+name,String.class);
+//					m.invoke(object, "t_value");
+				}
+				if (type.equals("class java.lang.Integer")) {
+					Method m = object.getClass().getMethod("get" + name);
+					Integer value = (Integer) m.invoke(object);
+//					if (value == null) {
+//						m = object.getClass().getMethod("set"+name,Integer.class);
+//						m.invoke(object, 1);
+//					}
+				}
+				if (type.equals("class java.lang.Boolean")) {
+					Method m = object.getClass().getMethod("get" + name);
+					Boolean value = (Boolean) m.invoke(object);
+//					if (value == null) {
+//						m = object.getClass().getMethod("set"+name,Boolean.class);
+//						m.invoke(object, false);
+//					}
+				}
+				if (type.equals("class java.util.Date")) {
+					Method m = object.getClass().getMethod("get" + name);
+					Date value = (Date) m.invoke(object);
+//					if (value == null) {
+//						m = object.getClass().getMethod("set"+name,Date.class);
+//						m.invoke(object, new Date());
+//					}
+				}
+				// 如果有需要,可以仿照上面继续进行扩充,再增加对其它类型的判断
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return object;
+	}
+
 }

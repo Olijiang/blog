@@ -1,11 +1,12 @@
 package blog.controller;
 
-import blog.config.Result;
 import blog.config.LocalCache;
+import blog.config.Result;
 import com.google.code.kaptcha.impl.DefaultKaptcha;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,12 +42,15 @@ public class KaptchaController {
 			LocalCache.put(ipMD5,verifyCode,60000L);
 			java.awt.image.BufferedImage challenge = captchaProducer.createImage(verifyCode);
 			ImageIO.write(challenge, "jpg", imgOutputStream);
+
+			String imgBase64 = Base64.encodeBase64String(imgOutputStream.toByteArray());
+			String PWKey = imgBase64.substring(1000,1020);
+			LocalCache.put(ipMD5+"PWKey",PWKey,60000L);
+			return Result.success("验证码获取成功",imgBase64);
 		} catch (Exception e) {
 			log.warn("验证码获取失败"+e);
 			return Result.error("验证码获取失败");
 		}
-		byte[] captchaOutputStream = imgOutputStream.toByteArray();
 
-		return Result.success("验证码获取成功",captchaOutputStream);
 	}
 }

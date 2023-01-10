@@ -60,7 +60,7 @@
 
 </template>
 
-<script>
+<script >
 
 import API from '../utils/API'
 import ArticleEditorVue from './ArticleEditor.vue'

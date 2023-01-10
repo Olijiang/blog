@@ -28,10 +28,9 @@ instance.interceptors.response.use(
   function (response) {
     // response.status 在 2xx 范围内的状态码都会触发该函数。服务器正确返回, 包括返回错误信息
     // 对响应数据做点什么
-    
+    console.log(response.data.message, response.data);
     if(response.data.code == 200){
       //设置token
-      console.log(response.data.message, response.data);
       if(response.headers.token!=undefined)
         store.state.token = response.headers.token
     }else{
@@ -46,6 +45,11 @@ instance.interceptors.response.use(
           router.replace({ path: "/"})
           break;
         default:
+          ElMessage({
+            showClose: true,
+            message: response.data.message,
+            type: 'warning',
+          })
           break;
       }
     }

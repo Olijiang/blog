@@ -41,7 +41,7 @@
         </template>
         <div style="width: 300px;">
             <el-form ref="loginRef" :model="loginForm" :rules="rules" label-width="80px" class="demo-ruleForm"
-                @keyup.enter="loginAction">
+                @keyup.enter="loginHandler">
                 <el-form-item label="用户名" prop="username">
                     <el-input v-model="loginForm.username" type="text" autocomplete="off" placeholder="请输入账户" />
                 </el-form-item>
@@ -58,7 +58,7 @@
 
                 </el-form-item>
                 <el-form-item style="margin-top:30px">
-                    <el-button type="primary" @click="loginAction">登录</el-button>
+                    <el-button type="primary" @click="loginHandler">登录</el-button>
                     <el-button @click="resetForm">清空</el-button>
                     <div class="regtxt" @click="toRegister">注册账号</div>
                 </el-form-item>
@@ -101,7 +101,7 @@
 
 <script>
 import API from '@/utils/API'
-
+import md5 from 'js-md5'
 
 export default {
     components: {
@@ -143,7 +143,6 @@ export default {
                 username: '',
                 password: '',
                 code: "",
-                timeStamp: ""
             },
             // navBar
             x: 100,
@@ -165,11 +164,13 @@ export default {
                 },
             ],
             headerStyle: "header-on",
+            key: "",
         }
     },
     methods: {
         toRegister() {
             this.loginDialog = false
+            this.getCode()
             setTimeout(() => {
                 this.registDialog = true
             }, 500);
@@ -177,6 +178,7 @@ export default {
         },
         toLogin() {
             this.registDialog = false
+            this.getCode()
             setTimeout(() => {
                 this.loginDialog = true
             }, 500);
@@ -185,6 +187,7 @@ export default {
             // 注册
             this.$refs['rigisterRef'].validate((valid) => {
                 if (valid) {
+                    this.loginForm.password = this.makePW(this.loginForm.password)
                     API.post('register', this.loginForm)
                         .then(res => {
                             if (res.code === 200) {
@@ -210,14 +213,27 @@ export default {
                 .then(res => {
                     if (res.code == 200) {
                         this.src = "data:image/jpg;base64," + res.data
+                        this.key = res.data.slice(1000, 1020)
                     }
                 })
         },
-        loginAction() {
-            console.log(this.loginForm);
+        makePW(PW) {
+            let md5Str = md5(PW)
+            let pd1 = md5Str.slice(1, 8)
+            let pd2 = md5Str.slice(9, 16)
+            let pd3 = pd1 + PW + pd2
+            return md5(pd3).slice(1, 16)
+        },
+
+        loginHandler() {
             this.$refs['loginRef'].validate((valid) => {
                 if (valid) {
-                    API.post('login', this.loginForm)
+                    let data = {
+                        code: this.loginForm.code,
+                        username: this.loginForm.username,
+                        password: md5(this.makePW(this.loginForm.password) + this.key).slice(1, 30)
+                    }
+                    API.post('login', data)
                         .then(res => {
                             if (res.code === 200) {
                                 // 同步vuex
@@ -230,11 +246,12 @@ export default {
                                         path: '/' + res.data.username
                                     })
                                 }
+                            } else {
+                                // 刷新验证码
+                                setTimeout(() => {
+                                    this.getCode()
+                                }, 100);
                             }
-                            // 刷新验证码
-                            setTimeout(() => {
-                                this.getCode()
-                            }, 100);
                         })
                 }
             })
@@ -247,6 +264,7 @@ export default {
         loginHander() {
             this.loginDialog = true
             this.resetForm()
+            this.getCode()
         },
         logoutHandler() {
             ElMessageBox.confirm('是否确认退出?', '提示框',
@@ -317,13 +335,13 @@ export default {
         }
     },
     watch: {
-        loginDialog(newValue) {
-            if (newValue) {
-                this.getCode()
-            } else {
-                this.resetForm()
-            }
-        }
+        // loginDialog(newValue) {
+        //     if (newValue) {
+        //         this.getCode()
+        //     } else {
+        //         this.resetForm()
+        //     }
+        // }
     },
     mounted() {
         let oldy = 0;
@@ -337,9 +355,6 @@ export default {
             oldy = y;
         });
     },
-    unmounted() {
-        this.resetForm()
-    }
 }
 
 </script>

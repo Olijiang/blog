@@ -16,7 +16,7 @@
             <!-- 封面 -->
             <div style="margin: 1%;">
                 <div class="setOne">
-                    <div style="margin: 20px;height: 50px;opacity: 0.8;">
+                    <div class="btOne">
                         <el-upload ref="coverUploadRef" class="upload-demo" accept=".png, .jpg"
                             :http-request="coverUploadHandler" :limit="1" :on-exceed="coverHandleExceed">
                             <template #trigger>
@@ -24,13 +24,16 @@
                             </template>
                         </el-upload>
                     </div>
-                    <div style="margin: 20px;height: 50px;opacity: 0.8;">
+                    <div class="btOne">
                         <el-upload ref="headImgUploadRef" class="upload-demo" accept=".png, .jpg"
                             :http-request="headImgUploadHandler" :limit="1" :on-exceed="headImgHandleExceed">
                             <template #trigger>
                                 <el-button type="primary">设置头像</el-button>
                             </template>
                         </el-upload>
+                    </div>
+                    <div class="btOne">
+                        <el-button type="primary" @click="resetPwd">修改密码</el-button>
                     </div>
                 </div>
                 <div style="margin-top: 40px;width: 150px;">
@@ -108,15 +111,52 @@
                 </div>
             </div>
         </div>
+        <!-- 改密dialog -->
+        <el-dialog v-model="resetPwdDialog" width="400px" top="20vh" modal :append-to-body="true"
+            style=" border-radius: 20px;">
+            <template #header>
+                <div style="font-size: 25px;margin-top: 10px;text-align: center;">
+                    修&#160;&#160;改&#160;&#160;密&#160;&#160;码</div>
+            </template>
+            <div style="width: 300px;">
+                <el-form ref="resetRef" :model="pwdFrom" :rules="rules" label-width="80px" class="demo-ruleForm"
+                    @keyup.enter="submitForm">
+                    <el-form-item label="原密码" prop="oldPwd">
+                        <el-input v-model="pwdFrom.oldPwd" type="password" autocomplete="off" placeholder="请输入原密码" />
+                    </el-form-item>
+                    <el-form-item label="新密码" prop="newPwd">
+                        <el-input v-model="pwdFrom.newPwd" type="password" autocomplete="off" placeholder="请输入新密码" />
+                    </el-form-item>
+                    <el-form-item label="新密码" prop="reNewPwd">
+                        <el-input v-model="pwdFrom.reNewPwd" type="password" autocomplete="off"
+                            placeholder="请再次输入新密码" />
+                    </el-form-item>
+                    <el-form-item label="验证码" prop="code">
+                        <div style="width:108px">
+                            <el-input v-model="pwdFrom.code" type="text" autocomplete="off" placeholder="请输入验证码" />
+                        </div>
+                        <div style="cursor: pointer;margin-left:10px ; width: 100px;height: 50px;" @click="getCode">
+                            <img :src="codeSrc" alt="" id="code" />
+                        </div>
+
+                    </el-form-item>
+                    <el-form-item style="margin-top:30px">
+                        <el-button type="primary" @click="submitForm">修改密码</el-button>
+                        <el-button @click="resetPwdDialog = false">取消</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+        </el-dialog>
+
     </div>
+
 
 </template>
 
 <script>
 
 import API from '../utils/API';
-import { VueCropper } from 'vue-cropper'
-
+import md5 from 'js-md5'
 export default {
 
     components: {
@@ -125,6 +165,25 @@ export default {
     props: { authorId: Number },
     data() {
         return {
+            //改密
+            resetPwdDialog: false,
+            pwdFrom: {
+                oldPwd: "",
+                newPwd: "",
+                reNewPwd: "",
+                code: ""
+            },
+            rules: {
+                oldPwd: { required: true, message: "请输入原密码", trigger: 'blur' },
+                newPwd: [{ required: true, message: "请输入新密码", trigger: 'blur' },
+                        {min:5, max:16, message:"密码长度在 5 到 16 个字符", trigger:'blur'}],
+                reNewPwd: { validator: this.validateReNewPwd, required: true, trigger: 'blur' },
+                code: { required: true, message: "请输入验证码", trigger: 'blur' }
+            },
+            // 验证码src
+            codeSrc: "",
+            key:"",
+            //
             author: {},
             changeFlag: false,
             tagChange: false,
@@ -143,13 +202,74 @@ export default {
         }
     },
     methods: {
+        validateReNewPwd(rule, value, callback) {
+            if (value === '') {
+                callback('请再次输入新密码')
+            }else if (value !== this.pwdFrom.newPwd) {
+                callback("两次输入的密码不一致")
+            }else callback()
+        },
+        resetForm() {
+            this.$refs['resetRef']?.resetFields()
+        },
+        resetPwd(){
+            this.resetPwdDialog = true,
+            this.getCode()
+            this.resetForm()
+        },
+        getCode() {
+            this.pwdFrom.code = ""
+            API.get("getCode")
+                .then(res => {
+                    if (res.code == 200) {
+                        this.codeSrc = "data:image/jpg;base64," + res.data
+                        this.key = res.data.slice(1000,1020)
+                    }
+                })
+        },
+        makePW(PW) {
+            let md5Str = md5(PW)
+            let pd1 = md5Str.slice(1, 8)
+            let pd2 = md5Str.slice(9, 16)
+            let pd3 = pd1 + PW + pd2
+            return md5(pd3).slice(1, 16)
+        },
+        // 改密
+        submitForm() {
+            this.$refs['resetRef'].validate((valid) => {
+                if (valid) {
+                    let data = {
+                        code: this.pwdFrom.code,
+                        oldPwd: md5(this.makePW(this.pwdFrom.oldPwd) + this.key).slice(1, 30),
+                        newPwd: this.makePW(this.pwdFrom.newPwd),
+                    }
+                    API.post('user/resetPwd', data)
+                        .then(res => {
+                            if (res.code === 200) {
+                                ElMessage({
+                                    showClose: true,
+                                    message: "修改成功",
+                                    type: 'success',
+                                })
+                                this.resetPwdDialog = false
+                            } else {
+                                // 刷新验证码
+                                setTimeout(() => {
+                                    this.getCode()
+                                }, 100);
+                            }
+                        })
+                }
+            })
+        },
         selectAllChangeCa(value) {
+            console.log(value);
             this.selectedCa = value ? this.categories : []
             this.isIndeterminateCa = false
             this.catChange = value
         },
         selectChangeCa(value) {
-            this.catChange = value.length > 0
+            this.catChange = (value.length > 0)
             this.selectAllCa = value.length === this.categories.length
             this.isIndeterminateCa = value.length > 0 && value.length < this.categories.length
         },
@@ -368,6 +488,16 @@ export default {
 
 <style lang='less' scoped>
 @border: 1px solid #278b63;
+
+.btOne {
+    margin: 20px;
+    opacity: 0.3;
+    transition: all 0.3s ease-in-out;
+
+    &:hover {
+        opacity: 1;
+    }
+}
 
 .illustration {
     position: relative;

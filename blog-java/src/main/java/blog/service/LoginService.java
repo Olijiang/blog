@@ -13,6 +13,7 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 
@@ -32,18 +33,18 @@ public class LoginService {
 	private AlbumMapper albumMapper;
 	@Resource
 	private TagMapper tagMapper;
-
-	public Result login(LoginInfo loginInfo){
-		String username = loginInfo.getUsername();
-		String password = loginInfo.getPassword();
-		User user = userMapper.selectById(username);
+	// PWKey 加密密码的随机盐
+	public Result login(LoginInfo loginInfo, String PWKey){
+		String accUsername = loginInfo.getUsername();
+		String accPassword = loginInfo.getPassword();
+		User user = userMapper.selectById(accUsername);
 		if (user==null) return Result.error("用户不存在");
-		if (user.getPassword().equals(password)){
+		String password = DigestUtils.md5DigestAsHex((user.getPassword()+PWKey).getBytes()).substring(1,30);
+		if (password.equals(accPassword)){
 			// 登录成功
-			loginInfo.setPassword("***");
 			String token =  TokenUtil.generateToken(loginInfo);
 			user.setPassword(token);
-			log.info("用户登录："+username);
+			log.info("用户登录："+accUsername);
 			return Result.success("登录成功",user);
 		}else{
 			return Result.error("密码错误");

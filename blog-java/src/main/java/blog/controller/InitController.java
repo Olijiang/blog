@@ -37,12 +37,13 @@ public class InitController {
 
 	@ApiOperation("访问数量")
 	@GetMapping("/visit")
-	public void visit(String authorId){
+	public Result visit(String authorId){
 		User user = userService.getUserById(authorId);
-		if (user==null) return;
+		if (user==null) return Result.error("用户不存在");
 		user.setVisitNum(user.getVisitNum()+1);
 		userService.updateById(user);
 		LocalCache.put("user"+authorId, user);
+		return Result.success();
 	}
 
 	@ApiOperation("初始化时获取作者信息")

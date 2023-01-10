@@ -30,10 +30,10 @@ public class LoginController {
 	public Result login(@RequestBody LoginInfo loginInfo, HttpServletRequest request){
 		String ip =  request.getRemoteAddr();
 		String key = DigestUtils.md5DigestAsHex(ip.getBytes()).substring(5,20);
+		String PWKey = (String) LocalCache.get(key+"PWKey");
 		String code = (String) LocalCache.get(key);
 		if (loginInfo.getCode().equals(code)){
-			LocalCache.remove(loginInfo.getTimeStamp());
-			return loginService.login(loginInfo);
+			return loginService.login(loginInfo,PWKey);
 		}else{
 			return Result.error("验证码错误");
 		}

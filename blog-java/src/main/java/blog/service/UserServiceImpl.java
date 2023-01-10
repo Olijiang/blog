@@ -1,7 +1,7 @@
 package blog.service;
 
-import blog.config.Result;
 import blog.config.LocalCache;
+import blog.config.Result;
 import blog.entity.Category;
 import blog.entity.User;
 import blog.mapper.UserMapper;
@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.util.Objects;
@@ -47,9 +48,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>{
 	}
 
 	@Transactional
-	public Result updateAuthor(User user, String[] tags, Category[] categories){
+	public Result updateAuthor(User user, String[] tags, Category[] categories, String token){
 		//验证身份
-		String authorId = Objects.requireNonNull(TokenUtil.getUserFromToken(user.getPassword())).getUsername();
+		String authorId = Objects.requireNonNull(TokenUtil.getUserFromToken(token)).getUsername();
 		if (!authorId.equals(user.getUsername())) return Result.error("非本人操作");
 		// 更新分类, 分类需要验证身份, 异常回滚操作
 		int res = categoryService.updateCategories(authorId,categories);
@@ -81,4 +82,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>{
 	}
 
 
+	public Result resetPassword(String authorId, String oldPwd, String newPwd, String PWKey) {
+		User user = userMapper.selectById(authorId);
+		String password = DigestUtils.md5DigestAsHex((user.getPassword()+PWKey).getBytes()).substring(1,30);
+		if (password.equals(oldPwd)){
+			// 认证成功, 修改密码
+			user.setPassword(newPwd);
+			userMapper.updateById(user);
+			log.info("用户修改密码："+authorId);
+			return Result.success("修改成功");
+		}else{
+			return Result.error("原密码错误");
+		}
+	}
 }

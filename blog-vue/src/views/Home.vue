@@ -48,7 +48,6 @@ export default {
         return {
             endmsg: "下拉加载更多",
             articleList: [],
-            show: false,
             ok: 0,
             timeout: null,
             queryData: {
@@ -70,7 +69,7 @@ export default {
                 let scrollHeight = document.documentElement.scrollHeight;//内容高度
                 if (clientHeight + scrollTop - scrollHeight > -10) {
                     this.endmsg = "正在加载..."
-                    let api = (this.isAuthor)?("article/getArticles"):("init/getPublicArticles")
+                    let api = (this.isAuthor) ? ("article/getArticles") : ("init/getPublicArticles")
                     API.get(api, this.queryData)
                         .then(res => {
                             if (res.code == 200) {
@@ -122,46 +121,29 @@ export default {
             })
         // 查询作者文章 5篇
         this.queryData.authorId = this.authorId
-        if (this.isAuthor) {
-            API.get('article/getArticles', this.queryData)
-                .then(res => {
-                    if (res.code == 200) {
-                        // console.log(res.data);
-                        res.data.forEach((element, index) => {
-                            element.index = this.queryData.startPage + index
-                            this.articleList.push(element)
-                        });
-                        if (res.data.length < this.queryData.pageSize) {
-                            this.endmsg = "没有更多了..."
-                            window.removeEventListener('scroll', this.handleScroll)
-                        }
-                        this.ok++
-                        this.queryData.startPage = this.queryData.startPage + 5
-                    }
-                })
-        } else {
-            API.get('init/getPublicArticles', this.queryData)
-                .then(res => {
-                    if (res.code == 200) {
-                        // console.log(res.data);
-                        res.data.forEach((element, index) => {
-                            element.index = this.queryData.startPage + index
-                            this.articleList.push(element)
-                        });
-                        if (res.data.length < this.queryData.pageSize) {
-                            this.endmsg = "没有更多了..."
-                            window.removeEventListener('scroll', this.handleScroll)
-                        }
-                        this.ok++
-                        this.queryData.startPage = this.queryData.startPage + 5
-                    }
-                })
-        }
-
-        // 等待请求, 200ms 后显示
+        // 等待100ms请求, 等待VisitAuthor更新
         setTimeout(() => {
-            this.show = true
-        }, 200);
+            let api = (this.isAuthor) ? ("article/getArticles") : ("init/getPublicArticles")
+            API.get(api, this.queryData)
+                .then(res => {
+                    if (res.code == 200) {
+                        // console.log(res.data);
+                        res.data.forEach((element, index) => {
+                            element.index = this.queryData.startPage + index
+                            this.articleList.push(element)
+                        });
+                        if (res.data.length < this.queryData.pageSize) {
+                            this.endmsg = "没有更多了..."
+                            window.removeEventListener('scroll', this.handleScroll)
+                        }
+                        this.ok++
+                        this.queryData.startPage = this.queryData.startPage + 5
+                    }
+                })
+        }, 100);
+
+
+
 
         // 更新访问信息
         API.get('init/visit', { authorId: this.authorId })

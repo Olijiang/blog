@@ -6,6 +6,8 @@
 
 <script>
 
+import md5 from 'js-md5'
+
 export default {
     data() {
         return {
@@ -14,6 +16,7 @@ export default {
     },
     mounted(){
         this.$store.commit("clearAuthor")
+        // console.log(md5("c261d2529716c9d64d624db129b32cPWKey")); 
     }
 }
 

@@ -31,7 +31,7 @@
     </el-dialog>
 </template>
 
-<script>
+<script >
 import API from '../utils/API'
 
 export default {
